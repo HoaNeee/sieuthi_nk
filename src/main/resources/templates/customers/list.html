@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Khách hàng')}">
+</head>
+<body>
+<header th:replace="~{fragments/layout :: nav}">
+</header>
+<main>
+<div th:replace="~{fragments/layout :: messages}">
+</div>
+<div class="heading">
+<h1>Khách hàng</h1>
+<a class="button" th:href="@{/customers/new}">+ Thêm mới</a>
+</div>
+<form class="toolbar" method="get" th:action="@{/customers}">
+<input name="q" th:value="${q}" placeholder="Tìm tên hoặc số điện thoại" aria-label="Tìm khách hàng">
+<button>Tìm</button>
+</form>
+<p>Điểm tích lũy chỉ hiển thị; chưa áp dụng quy tắc cộng/trừ điểm.</p>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Họ tên</th>
+<th>Số điện thoại</th>
+<th>Điểm tích lũy</th>
+<th>Thao tác</th>
+</tr>
+</thead>
+<tbody>
+<tr th:each="r : ${rows}">
+<td th:text="${r.id}">
+</td>
+<td th:text="${r.name}">
+</td>
+<td th:text="${r.phone}">
+</td>
+<td th:text="${r.points}">
+</td>
+<td>
+<a th:href="@{/customers/{id}/edit(id=${r.id})}">Chỉnh sửa</a>
+</td>
+</tr>
+<tr th:if="${#lists.isEmpty(rows)}">
+<td colspan="8" class="empty">Chưa có dữ liệu.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</main>
+</body>
+</html>
+

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Nhà cung cấp')}">
+</head>
+<body>
+<header th:replace="~{fragments/layout :: nav}">
+</header>
+<main>
+<div th:replace="~{fragments/layout :: messages}">
+</div>
+<section class="card narrow">
+<h1>Nhà cung cấp</h1>
+<form th:object="${form}" th:action="${id == null} ? @{/suppliers} : @{/suppliers/{id}/edit(id=${id})}" method="post">
+<div class="alert error" th:if="${#fields.hasAnyErrors()}">
+<p th:each="e : ${#fields.allErrors()}" th:text="${e}">
+</p>
+</div>
+<label>Tên nhà cung cấp<input type="text" th:field="*{name}" required>
+<small class="field-error" th:errors="*{name}">
+</small>
+</label>
+<label>Số điện thoại<input type="text" th:field="*{phone}" >
+<small class="field-error" th:errors="*{phone}">
+</small>
+</label>
+<label>Địa chỉ<input type="text" th:field="*{address}" >
+<small class="field-error" th:errors="*{address}">
+</small>
+</label>
+<label>Email<input type="email" th:field="*{email}" >
+<small class="field-error" th:errors="*{email}">
+</small>
+</label>
+<div class="actions">
+<button type="submit">Lưu thông tin</button>
+<a class="button secondary" th:href="@{/products}">Về sản phẩm</a>
+</div>
+</form>
+</section>
+</main>
+</body>
+</html>
+

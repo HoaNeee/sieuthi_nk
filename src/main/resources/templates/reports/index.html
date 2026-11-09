@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Báo cáo')}">
+</head>
+<body>
+<header th:replace="~{fragments/layout :: nav}">
+</header>
+<main>
+<div th:replace="~{fragments/layout :: messages}">
+</div>
+<h1>Báo cáo quản trị</h1>
+<form class="toolbar" th:action="@{/reports}" method="get">
+<label>Từ ngày<input type="date" name="from" th:value="${from}" required>
+</label>
+<label>Đến ngày<input type="date" name="to" th:value="${to}" required>
+</label>
+<button>Xem báo cáo</button>
+</form>
+<section class="card">
+<h2>Doanh thu theo ngày</h2>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Ngày</th>
+<th>Số hóa đơn</th>
+<th>Doanh thu (VND)</th>
+</tr>
+</thead>
+<tbody>
+<tr th:each="r : ${revenue}">
+<td th:text="${r.label}">
+</td>
+<td th:text="${r.quantity}">
+</td>
+<td th:text="${#numbers.formatDecimal(r.amount,1,'COMMA',2,'POINT')}">
+</td>
+</tr>
+<tr th:if="${#lists.isEmpty(revenue)}">
+<td colspan="3">Chưa có dữ liệu.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section class="card">
+<h2>Bán hàng theo sản phẩm</h2>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Sản phẩm</th>
+<th>Số lượng bán</th>
+<th>Doanh thu (VND)</th>
+</tr>
+</thead>
+<tbody>
+<tr th:each="r : ${sales}">
+<td th:text="${r.label}">
+</td>
+<td th:text="${r.quantity}">
+</td>
+<td th:text="${#numbers.formatDecimal(r.amount,1,'COMMA',2,'POINT')}">
+</td>
+</tr>
+<tr th:if="${#lists.isEmpty(sales)}">
+<td colspan="3">Chưa có dữ liệu.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section class="card">
+<h2>Tồn kho hiện tại</h2>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Sản phẩm</th>
+<th>Số lượng tồn</th>
+<th>Giá trị theo giá bán (VND)</th>
+</tr>
+</thead>
+<tbody>
+<tr th:each="r : ${stock}">
+<td th:text="${r.label}">
+</td>
+<td th:text="${r.quantity}">
+</td>
+<td th:text="${#numbers.formatDecimal(r.amount,1,'COMMA',2,'POINT')}">
+</td>
+</tr>
+<tr th:if="${#lists.isEmpty(stock)}">
+<td colspan="3">Chưa có dữ liệu.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+</body>
+</html>
+

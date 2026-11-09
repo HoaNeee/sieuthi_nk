@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Nhân viên')}">
+</head>
+<body>
+<header th:replace="~{fragments/layout :: nav}">
+</header>
+<main>
+<div th:replace="~{fragments/layout :: messages}">
+</div>
+<div class="heading">
+<h1>Nhân viên</h1>
+<a class="button" th:href="@{/employees/new}">+ Thêm mới</a>
+</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Họ tên</th>
+<th>Chức vụ</th>
+<th>Tên đăng nhập</th>
+<th>Vai trò</th>
+<th>Hoạt động</th>
+<th>Thao tác</th>
+</tr>
+</thead>
+<tbody>
+<tr th:each="r : ${rows}">
+<td th:text="${r.id}">
+</td>
+<td th:text="${r.name}">
+</td>
+<td th:text="${r.title}">
+</td>
+<td th:text="${r.username}">
+</td>
+<td th:text="${r.role}">
+</td>
+<td th:text="${r.active}">
+</td>
+<td>
+<a th:href="@{/employees/{id}/edit(id=${r.id})}">Chỉnh sửa</a>
+</td>
+</tr>
+<tr th:if="${#lists.isEmpty(rows)}">
+<td colspan="8" class="empty">Chưa có dữ liệu.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</main>
+</body>
+</html>
+

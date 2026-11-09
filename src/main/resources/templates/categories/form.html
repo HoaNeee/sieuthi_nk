@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Danh mục')}">
+</head>
+<body>
+<header th:replace="~{fragments/layout :: nav}">
+</header>
+<main>
+<div th:replace="~{fragments/layout :: messages}">
+</div>
+<section class="card narrow">
+<h1>Danh mục</h1>
+<form th:object="${form}" th:action="${id == null} ? @{/categories} : @{/categories/{id}/edit(id=${id})}" method="post">
+<div class="alert error" th:if="${#fields.hasAnyErrors()}">
+<p th:each="e : ${#fields.allErrors()}" th:text="${e}">
+</p>
+</div>
+<label>Tên danh mục<input type="text" th:field="*{name}" required>
+<small class="field-error" th:errors="*{name}">
+</small>
+</label>
+<label>Mô tả<input type="text" th:field="*{description}" >
+<small class="field-error" th:errors="*{description}">
+</small>
+</label>
+<div class="actions">
+<button type="submit">Lưu thông tin</button>
+<a class="button secondary" th:href="@{/products}">Về sản phẩm</a>
+</div>
+</form>
+</section>
+</main>
+</body>
+</html>
+

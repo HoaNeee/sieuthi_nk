@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Sản phẩm')}">
+</head>
+<body>
+<header th:replace="~{fragments/layout :: nav}">
+</header>
+<main>
+<div th:replace="~{fragments/layout :: messages}">
+</div>
+<div class="heading">
+<div>
+<p class="eyebrow">DANH MỤC HÀNG HÓA</p>
+<h1>Sản phẩm</h1>
+</div>
+<a class="button" th:if="${admin}" th:href="@{/products/new}">+ Thêm sản phẩm</a>
+</div>
+<form class="toolbar" th:action="@{/products}" method="get">
+<input name="q" th:value="${q}" placeholder="Tìm tên sản phẩm hoặc barcode" aria-label="Tìm sản phẩm">
+<select name="category" aria-label="Danh mục">
+<option value="">Tất cả danh mục</option>
+<option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}" th:selected="${category == c.id}">
+</option>
+</select>
+<button>Tìm kiếm</button>
+</form>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Mã / Barcode</th>
+<th>Sản phẩm</th>
+<th>Danh mục / NCC</th>
+<th>Giá bán</th>
+<th>Tồn</th>
+<th>Hạn dùng</th>
+<th>Thao tác</th>
+</tr>
+</thead>
+<tbody>
+<tr th:each="p : ${products}">
+<td>
+<b th:text="${p.id}">
+</b>
+<small th:text="${p.barcode}">
+</small>
+</td>
+<td th:text="${p.name}">
+</td>
+<td>
+<span th:text="${p.categoryName}">
+</span>
+<small th:text="${p.supplierName}">
+</small>
+</td>
+<td class="money" th:text="${#numbers.formatDecimal(p.price,1,'COMMA',2,'POINT')}">
+</td>
+<td th:text="${p.stock}">
+</td>
+<td th:text="${p.expiry ?: '—'}">
+</td>
+<td>
+<form class="inline" th:action="@{/pos/items}" method="post">
+<input type="hidden" name="productId" th:value="${p.id}">
+<input type="number" name="quantity" value="1" min="1" max="999999999" aria-label="Số lượng">
+<button th:disabled="${p.stock == 0}">Thêm vào giỏ</button>
+</form>
+<a th:if="${admin}" th:href="@{/products/{id}/edit(id=${p.id})}">Chỉnh sửa</a>
+</td>
+</tr>
+<tr th:if="${#lists.isEmpty(products)}">
+<td colspan="7" class="empty">Chưa có sản phẩm phù hợp.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="actions">
+<a th:if="${page > 0}" th:href="@{/products(q=${q},category=${category},page=${page - 1})}">← Trang trước</a>
+<span th:text="'Trang ' + ${page + 1}">
+</span>
+<a th:if="${hasNext}" th:href="@{/products(q=${q},category=${category},page=${page + 1})}">Trang tiếp →</a>
+<a th:href="@{/pos}">Xem giỏ bán hàng</a>
+</div>
+</main>
+</body>
+</html>
+

@@ -1,0 +1,21 @@
+-- Sample Oracle reports, executed manually as SIEUTHI.
+-- Revenue per day:
+SELECT TRUNC(NGAY_LAP) AS NGAY, COUNT(*) AS SO_HOA_DON, SUM(TONG_TIEN) AS DOANH_THU
+FROM HOA_DON GROUP BY TRUNC(NGAY_LAP) ORDER BY NGAY;
+
+-- Product sales: historical prices come from invoice lines.
+SELECT p.MA_SP, p.TEN_SP, SUM(ct.SO_LUONG) AS SO_LUONG_BAN,
+       SUM(ct.SO_LUONG * ct.DON_GIA) AS DOANH_THU
+FROM SAN_PHAM p JOIN CT_HOA_DON ct ON ct.MA_SP=p.MA_SP
+GROUP BY p.MA_SP,p.TEN_SP ORDER BY DOANH_THU DESC;
+
+-- Current stock valued at selling price (not acquisition cost):
+SELECT MA_SP,TEN_SP,SO_LUONG_TON,GIA_BAN,SO_LUONG_TON*GIA_BAN AS GIA_TRI_THEO_GIA_BAN
+FROM SAN_PHAM ORDER BY SO_LUONG_TON,MA_SP;
+
+-- Integrity check: must return no rows.
+SELECT h.MA_HD,h.TONG_TIEN,NVL(SUM(ct.SO_LUONG*ct.DON_GIA),0) AS TONG_CHI_TIET
+FROM HOA_DON h LEFT JOIN CT_HOA_DON ct ON ct.MA_HD=h.MA_HD
+GROUP BY h.MA_HD,h.TONG_TIEN
+HAVING h.TONG_TIEN <> NVL(SUM(ct.SO_LUONG*ct.DON_GIA),0);
+

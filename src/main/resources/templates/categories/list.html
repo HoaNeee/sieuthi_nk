@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Danh mục')}">
+</head>
+<body>
+<header th:replace="~{fragments/layout :: nav}">
+</header>
+<main>
+<div th:replace="~{fragments/layout :: messages}">
+</div>
+<div class="heading">
+<h1>Danh mục</h1>
+<a class="button" th:href="@{/categories/new}">+ Thêm mới</a>
+</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Tên danh mục</th>
+<th>Mô tả</th>
+<th>Thao tác</th>
+</tr>
+</thead>
+<tbody>
+<tr th:each="r : ${rows}">
+<td th:text="${r.id}">
+</td>
+<td th:text="${r.name}">
+</td>
+<td th:text="${r.description}">
+</td>
+<td>
+<a th:href="@{/categories/{id}/edit(id=${r.id})}">Chỉnh sửa</a>
+</td>
+</tr>
+<tr th:if="${#lists.isEmpty(rows)}">
+<td colspan="8" class="empty">Chưa có dữ liệu.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</main>
+</body>
+</html>
+

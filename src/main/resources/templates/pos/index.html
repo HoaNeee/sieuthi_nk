@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Bán hàng')}">
+</head>
+<body>
+<header th:replace="~{fragments/layout :: nav}">
+</header>
+<main>
+<div th:replace="~{fragments/layout :: messages}">
+</div>
+<div class="heading">
+<div>
+<p class="eyebrow">ĐIỂM BÁN HÀNG</p>
+<h1>Giỏ bán hàng</h1>
+</div>
+<a class="button secondary" th:href="@{/products}">+ Chọn sản phẩm</a>
+</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Sản phẩm</th>
+<th>Giá hiện tại</th>
+<th>Tồn</th>
+<th>Số lượng</th>
+<th>Thành tiền</th>
+<th>
+</th>
+</tr>
+</thead>
+<tbody>
+<tr th:each="r : ${rows}">
+<td th:text="${r.name}">
+</td>
+<td th:text="${#numbers.formatDecimal(r.price,1,'COMMA',2,'POINT')}">
+</td>
+<td th:text="${r.stock}">
+</td>
+<td>
+<form class="inline" th:action="@{/pos/items/{id}(id=${r.id})}" method="post">
+<input type="number" name="quantity" th:value="${r.quantity}" min="1" max="999999999" aria-label="Số lượng" required>
+<button class="secondary">Cập nhật</button>
+</form>
+</td>
+<td th:text="${#numbers.formatDecimal(r.amount,1,'COMMA',2,'POINT')}">
+</td>
+<td>
+<form th:action="@{/pos/items/{id}/remove(id=${r.id})}" method="post">
+<button class="danger">Xóa</button>
+</form>
+</td>
+</tr>
+<tr th:if="${#lists.isEmpty(rows)}">
+<td colspan="6" class="empty">Giỏ trống. Chọn sản phẩm để bắt đầu.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<section class="card checkout">
+<h2>Tạm tính: <span th:text="${#numbers.formatDecimal(total,1,'COMMA',2,'POINT')}">
+</span> VND</h2>
+<p>Giá và tồn kho được kiểm tra lại khi lập hóa đơn.</p>
+<form th:action="@{/pos/checkout}" th:object="${form}" method="post">
+<div class="alert error" th:if="${#fields.hasAnyErrors()}">
+<p th:each="e : ${#fields.allErrors()}" th:text="${e}">
+</p>
+</div>
+<label>Khách hàng<select th:field="*{customerId}">
+<option value="">Khách vãng lai</option>
+<option th:each="c : ${customers}" th:value="${c.id}" th:text="${c.name + ' · ' + (c.phone ?: '')}">
+</option>
+</select>
+</label>
+<label>Hình thức thanh toán<select th:field="*{payment}">
+<option value="TIEN_MAT">Tiền mặt</option>
+<option value="CHUYEN_KHOAN">Chuyển khoản (ghi nhận)</option>
+</select>
+</label>
+<button th:disabled="${#lists.isEmpty(rows)}">Xác nhận lập hóa đơn</button>
+</form>
+</section>
+</main>
+</body>
+</html>
+

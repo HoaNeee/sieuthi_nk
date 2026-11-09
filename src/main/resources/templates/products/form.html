@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Lưu sản phẩm')}">
+</head>
+<body>
+<header th:replace="~{fragments/layout :: nav}">
+</header>
+<main>
+<div th:replace="~{fragments/layout :: messages}">
+</div>
+<section class="card narrow">
+<h1 th:text="${id == null ? 'Thêm sản phẩm' : 'Sửa sản phẩm'}">
+</h1>
+<p>Tồn kho được cập nhật qua phiếu nhập và bán hàng.</p>
+<form th:object="${form}" th:action="${id == null} ? @{/products} : @{/products/{id}/edit(id=${id})}" method="post">
+<div class="alert error" th:if="${#fields.hasAnyErrors()}">
+<p th:each="e : ${#fields.allErrors()}" th:text="${e}">
+</p>
+</div>
+<label>Tên sản phẩm<input type="text" th:field="*{name}" required maxlength="150">
+<small class="field-error" th:errors="*{name}">
+</small>
+</label>
+<label>Barcode<input type="text" th:field="*{barcode}" maxlength="80">
+<small class="field-error" th:errors="*{barcode}">
+</small>
+</label>
+<label>Giá bán (VND)<input type="number" th:field="*{price}" required min="0" step="0.01" max="9999999999999.99">
+<small class="field-error" th:errors="*{price}">
+</small>
+</label>
+<label>Danh mục<select th:field="*{categoryId}" required>
+<option value="">Chọn danh mục</option>
+<option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}">
+</option>
+</select>
+<small th:errors="*{categoryId}">
+</small>
+</label>
+<label>Nhà cung cấp<select th:field="*{supplierId}" required>
+<option value="">Chọn nhà cung cấp</option>
+<option th:each="s : ${suppliers}" th:value="${s.id}" th:text="${s.name}">
+</option>
+</select>
+<small th:errors="*{supplierId}">
+</small>
+</label>
+<label>Hạn sử dụng (để trống nếu không áp dụng)<input type="date" th:field="*{expiry}" >
+<small class="field-error" th:errors="*{expiry}">
+</small>
+</label>
+<div class="actions">
+<button type="submit">Lưu thông tin</button>
+<a class="button secondary" th:href="@{/products}">Về sản phẩm</a>
+</div>
+</form>
+</section>
+</main>
+</body>
+</html>
+

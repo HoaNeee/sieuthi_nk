@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title th:text="${title} + ' · Siêu thị nội bộ'">Siêu thị nội bộ</title>
+<link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<header th:fragment="nav">
+<a class="brand" th:href="@{/products}">SIEUTHI<span>Quản lý nội bộ</span>
+</a>
+<nav th:if="${loginName != null}">
+<a th:href="@{/products}">Sản phẩm</a>
+<a th:href="@{/pos}">Bán hàng</a>
+<a th:href="@{/invoices}">Hóa đơn</a>
+<a th:href="@{/customers}">Khách hàng</a>
+<th:block th:if="${admin}">
+<a th:href="@{/categories}">Danh mục</a>
+<a th:href="@{/suppliers}">Nhà cung cấp</a>
+<a th:href="@{/imports}">Nhập kho</a>
+<a th:href="@{/employees}">Nhân viên</a>
+<a th:href="@{/reports}">Báo cáo</a>
+</th:block>
+<a th:href="@{/password}" th:text="${loginName}">Tài khoản</a>
+<form th:action="@{/logout}" method="post">
+<button class="secondary">Đăng xuất</button>
+</form>
+</nav>
+</header>
+<div th:fragment="messages">
+<p class="alert success" th:if="${success}" th:text="${success}">
+</p>
+<p class="alert error" th:if="${error}" th:text="${error}">
+</p>
+</div>
+</body>
+</html>

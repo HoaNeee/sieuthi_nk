@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Lập phiếu nhập')}">
+</head>
+<body>
+<header th:replace="~{fragments/layout :: nav}">
+</header>
+<main>
+<div th:replace="~{fragments/layout :: messages}">
+</div>
+<section class="card">
+<h1>Lập phiếu nhập kho</h1>
+<p>Chọn sản phẩm thuộc cùng nhà cung cấp. Các dòng trùng sản phẩm được giữ riêng theo giá nhập.</p>
+<form th:action="@{/imports}" method="post" th:object="${form}">
+<div class="alert error" th:if="${#fields.hasAnyErrors()}">
+<p th:each="e : ${#fields.allErrors()}" th:text="${e}">
+</p>
+</div>
+<input type="hidden" name="token" th:value="${token}">
+<label>Nhà cung cấp<select th:field="*{supplierId}" required>
+<option value="">Chọn nhà cung cấp</option>
+<option th:each="s : ${suppliers}" th:value="${s.id}" th:text="${s.name}">
+</option>
+</select>
+<small th:errors="*{supplierId}">
+</small>
+</label>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Sản phẩm · Nhà cung cấp</th>
+<th>Số lượng</th>
+<th>Giá nhập (VND)</th>
+<th>
+</th>
+</tr>
+</thead>
+<tbody id="import-lines">
+<tr th:each="line,stat : *{lines}">
+<td>
+<select th:field="*{lines[__${stat.index}__].productId}" required aria-label="Sản phẩm">
+<option value="">Chọn sản phẩm</option>
+<option th:each="p : ${products}" th:value="${p.id}" th:text="${p.name + ' · ' + p.supplierName}">
+</option>
+</select>
+<small th:errors="*{lines[__${stat.index}__].productId}">
+</small>
+</td>
+<td>
+<input type="number" th:field="*{lines[__${stat.index}__].quantity}" min="1" max="999999999" required aria-label="Số lượng">
+<small th:errors="*{lines[__${stat.index}__].quantity}">
+</small>
+</td>
+<td>
+<input type="number" th:field="*{lines[__${stat.index}__].price}" min="0" max="9999999999999.99" step="0.01" required aria-label="Giá nhập">
+<small th:errors="*{lines[__${stat.index}__].price}">
+</small>
+</td>
+<td>
+<button type="button" class="danger remove-line">Xóa dòng</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="actions">
+<button type="button" id="add-line" class="secondary">+ Thêm dòng</button>
+<button>Lưu phiếu và tăng tồn kho</button>
+</div>
+</form>
+</section>
+<script th:src="@{/js/imports.js}" defer>
+</script>
+</main>
+</body>
+</html>
+

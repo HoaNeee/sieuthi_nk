@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Không thể hoàn tất')}">
+</head>
+<body>
+<header th:replace="~{fragments/layout :: nav}">
+</header>
+<main>
+<div th:replace="~{fragments/layout :: messages}">
+</div>
+<section class="card narrow">
+<h1>Không thể hoàn tất thao tác</h1>
+<p th:text="${message ?: 'Trang không tồn tại, bạn không có quyền truy cập hoặc hệ thống đang tạm thời không sẵn sàng.'}">
+</p>
+<a class="button" th:href="@{/products}">Về sản phẩm</a>
+</section>
+</main>
+</body>
+</html>
+
