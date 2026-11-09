@@ -93,12 +93,12 @@ public class DocumentRepository {
     }
   }
 
-  public List<DocumentHeader> invoices(Long employee, Long id) throws SQLException {
+  public List<Invoice> invoices(Long employee, Long id) throws SQLException {
     String sql =
-        "SELECT h.MA_HD,h.NGAY_LAP,n.HO_TEN employee,k.HO_TEN partner,h.HINH_THUC_TT,h.TONG_TIEN"
-            + " FROM HOA_DON h JOIN NHAN_VIEN n ON n.MA_NV=h.MA_NV LEFT JOIN KHACH_HANG k ON"
-            + " k.MA_KH=h.MA_KH WHERE (? IS NULL OR h.MA_NV=?) AND (? IS NULL OR h.MA_HD=?) ORDER"
-            + " BY h.MA_HD DESC";
+        "SELECT h.MA_HD,h.NGAY_LAP,n.HO_TEN employee,k.HO_TEN"
+            + " partner,h.HINH_THUC_TT,h.TONG_TIEN,h.MA_NV,h.MA_KH FROM HOA_DON h JOIN NHAN_VIEN n"
+            + " ON n.MA_NV=h.MA_NV LEFT JOIN KHACH_HANG k ON k.MA_KH=h.MA_KH WHERE (? IS NULL OR"
+            + " h.MA_NV=?) AND (? IS NULL OR h.MA_HD=?) ORDER BY h.MA_HD DESC";
     try (Connection c = ds.getConnection();
         PreparedStatement s = c.prepareStatement(sql)) {
       s.setObject(1, employee, Types.NUMERIC);
@@ -106,12 +106,14 @@ public class DocumentRepository {
       s.setObject(3, id, Types.NUMERIC);
       s.setObject(4, id, Types.NUMERIC);
       try (ResultSet r = s.executeQuery()) {
-        List<DocumentHeader> a = new ArrayList<>();
+        List<Invoice> a = new ArrayList<>();
         while (r.next())
           a.add(
-              new DocumentHeader(
+              new Invoice(
                   r.getLong(1),
                   r.getTimestamp(2).toLocalDateTime(),
+                  r.getLong(7),
+                  nullableLong(r, 8),
                   r.getString(3),
                   r.getString(4),
                   r.getString(5),
@@ -121,63 +123,94 @@ public class DocumentRepository {
     }
   }
 
-  public List<DocumentHeader> imports(Long id) throws SQLException {
+  public List<StockImport> imports(Long id) throws SQLException {
     String sql =
         "SELECT p.MA_PN,p.NGAY_NHAP,n.HO_TEN,s.TEN_NCC,(SELECT SUM(ct.SO_LUONG*ct.DON_GIA_NHAP)"
-            + " FROM CT_PHIEU_NHAP ct WHERE ct.MA_PN=p.MA_PN) total FROM PHIEU_NHAP p JOIN"
-            + " NHAN_VIEN n ON n.MA_NV=p.MA_NV JOIN NHA_CUNG_CAP s ON s.MA_NCC=p.MA_NCC WHERE (? IS"
-            + " NULL OR p.MA_PN=?) ORDER BY p.MA_PN DESC";
+            + " FROM CT_PHIEU_NHAP ct WHERE ct.MA_PN=p.MA_PN) total,p.MA_NV,p.MA_NCC FROM"
+            + " PHIEU_NHAP p JOIN NHAN_VIEN n ON n.MA_NV=p.MA_NV JOIN NHA_CUNG_CAP s ON"
+            + " s.MA_NCC=p.MA_NCC WHERE (? IS NULL OR p.MA_PN=?) ORDER BY p.MA_PN DESC";
     try (Connection c = ds.getConnection();
         PreparedStatement s = c.prepareStatement(sql)) {
       s.setObject(1, id, Types.NUMERIC);
       s.setObject(2, id, Types.NUMERIC);
       try (ResultSet r = s.executeQuery()) {
-        List<DocumentHeader> a = new ArrayList<>();
+        List<StockImport> a = new ArrayList<>();
         while (r.next())
           a.add(
-              new DocumentHeader(
+              new StockImport(
                   r.getLong(1),
                   r.getTimestamp(2).toLocalDateTime(),
+                  r.getLong(6),
+                  r.getLong(7),
                   r.getString(3),
                   r.getString(4),
-                  null,
                   r.getBigDecimal(5)));
         return a;
       }
     }
   }
 
-  public List<DocumentLine> invoiceLines(long id, Long employee) throws SQLException {
+  public List<InvoiceDetail> invoiceLines(long id, Long employee) throws SQLException {
     String sql =
-        "SELECT p.TEN_SP,ct.SO_LUONG,ct.DON_GIA FROM CT_HOA_DON ct JOIN SAN_PHAM p ON"
-            + " p.MA_SP=ct.MA_SP JOIN HOA_DON h ON h.MA_HD=ct.MA_HD WHERE ct.MA_HD=? AND (? IS NULL"
-            + " OR h.MA_NV=?) ORDER BY ct.MA_CT";
+        "SELECT p.TEN_SP,ct.SO_LUONG,ct.DON_GIA,ct.MA_CT,ct.MA_HD,ct.MA_SP FROM CT_HOA_DON ct JOIN"
+            + " SAN_PHAM p ON p.MA_SP=ct.MA_SP JOIN HOA_DON h ON h.MA_HD=ct.MA_HD WHERE ct.MA_HD=?"
+            + " AND (? IS NULL OR h.MA_NV=?) ORDER BY ct.MA_CT";
     try (Connection c = ds.getConnection();
         PreparedStatement s = c.prepareStatement(sql)) {
       s.setLong(1, id);
       s.setObject(2, employee, Types.NUMERIC);
       s.setObject(3, employee, Types.NUMERIC);
-      return readLines(s);
+      return readInvoiceDetails(s);
     }
   }
 
-  public List<DocumentLine> importLines(long id) throws SQLException {
+  public List<StockImportDetail> importLines(long id) throws SQLException {
     try (Connection c = ds.getConnection();
         PreparedStatement s =
             c.prepareStatement(
-                "SELECT p.TEN_SP,ct.SO_LUONG,ct.DON_GIA_NHAP FROM CT_PHIEU_NHAP ct JOIN SAN_PHAM p"
-                    + " ON p.MA_SP=ct.MA_SP WHERE ct.MA_PN=? ORDER BY ct.MA_CTPN")) {
+                "SELECT p.TEN_SP,ct.SO_LUONG,ct.DON_GIA_NHAP,ct.MA_CTPN,ct.MA_PN,ct.MA_SP FROM"
+                    + " CT_PHIEU_NHAP ct JOIN SAN_PHAM p ON p.MA_SP=ct.MA_SP WHERE ct.MA_PN=? ORDER"
+                    + " BY ct.MA_CTPN")) {
       s.setLong(1, id);
-      return readLines(s);
+      return readImportDetails(s);
     }
   }
 
-  private List<DocumentLine> readLines(PreparedStatement s) throws SQLException {
+  private List<InvoiceDetail> readInvoiceDetails(PreparedStatement s) throws SQLException {
     try (ResultSet r = s.executeQuery()) {
-      List<DocumentLine> a = new ArrayList<>();
-      while (r.next()) a.add(new DocumentLine(r.getString(1), r.getInt(2), r.getBigDecimal(3)));
-      return a;
+      List<InvoiceDetail> rows = new ArrayList<>();
+      while (r.next())
+        rows.add(
+            new InvoiceDetail(
+                r.getLong(4),
+                r.getLong(5),
+                r.getLong(6),
+                r.getString(1),
+                r.getInt(2),
+                r.getBigDecimal(3)));
+      return rows;
     }
+  }
+
+  private List<StockImportDetail> readImportDetails(PreparedStatement s) throws SQLException {
+    try (ResultSet r = s.executeQuery()) {
+      List<StockImportDetail> rows = new ArrayList<>();
+      while (r.next())
+        rows.add(
+            new StockImportDetail(
+                r.getLong(4),
+                r.getLong(5),
+                r.getLong(6),
+                r.getString(1),
+                r.getInt(2),
+                r.getBigDecimal(3)));
+      return rows;
+    }
+  }
+
+  private Long nullableLong(ResultSet r, int column) throws SQLException {
+    long value = r.getLong(column);
+    return r.wasNull() ? null : value;
   }
 
   private void check(int n) throws SQLException {

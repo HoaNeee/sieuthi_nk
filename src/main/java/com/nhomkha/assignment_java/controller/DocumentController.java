@@ -26,32 +26,28 @@ public class DocumentController {
   @GetMapping("/invoices")
   String invoices(@AuthenticationPrincipal EmployeePrincipal actor, Model m) throws SQLException {
     m.addAttribute("rows", trading.invoices(actor));
-    m.addAttribute("kind", "invoices");
-    return "documents/list";
+    return "invoices/list";
   }
 
   @GetMapping("/invoices/{id}")
   String invoice(@PathVariable long id, @AuthenticationPrincipal EmployeePrincipal actor, Model m)
       throws SQLException {
-    m.addAttribute("doc", trading.invoice(id, actor));
+    m.addAttribute("invoice", trading.invoice(id, actor));
     m.addAttribute("lines", trading.invoiceLines(id, actor));
-    m.addAttribute("kind", "invoices");
-    return "documents/detail";
+    return "invoices/detail";
   }
 
   @GetMapping("/imports")
   String imports(Model m) throws SQLException {
     m.addAttribute("rows", trading.imports());
-    m.addAttribute("kind", "imports");
-    return "documents/list";
+    return "imports/list";
   }
 
   @GetMapping("/imports/{id}")
   String stockImport(@PathVariable long id, Model m) throws SQLException {
-    m.addAttribute("doc", trading.stockImport(id));
+    m.addAttribute("stockImport", trading.stockImport(id));
     m.addAttribute("lines", trading.importLines(id));
-    m.addAttribute("kind", "imports");
-    return "documents/detail";
+    return "imports/detail";
   }
 
   @GetMapping("/imports/new")

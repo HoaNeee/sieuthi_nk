@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Chứng từ')}">
+<head th:replace="~{fragments/layout :: head('Hóa đơn')}">
 </head>
 <body>
 <header th:replace="~{fragments/layout :: nav}">
@@ -9,9 +9,8 @@
 <div th:replace="~{fragments/layout :: messages}">
 </div>
 <div class="heading">
-<h1 th:text="${kind == 'invoices' ? 'Lịch sử hóa đơn' : 'Lịch sử nhập kho'}">
+<h1>Lịch sử hóa đơn
 </h1>
-<a class="button" th:if="${kind == 'imports'}" th:href="@{/imports/new}">+ Lập phiếu nhập</a>
 </div>
 <div class="table-wrap">
 <table>
@@ -20,7 +19,7 @@
 <th>Mã</th>
 <th>Thời gian</th>
 <th>Nhân viên</th>
-<th>Khách hàng / NCC</th>
+<th>Khách hàng</th>
 <th>Tổng tiền (VND)</th>
 <th>
 </th>
@@ -32,18 +31,18 @@
 </td>
 <td th:text="${#temporals.format(r.date,'dd/MM/yyyy HH:mm')}">
 </td>
-<td th:text="${r.employee}">
+<td th:text="${r.employeeName}">
 </td>
-<td th:text="${r.partner ?: 'Khách vãng lai'}">
+<td th:text="${r.customerName ?: 'Khách vãng lai'}">
 </td>
 <td th:text="${#numbers.formatDecimal(r.total,1,'COMMA',2,'POINT')}">
 </td>
 <td>
-<a th:href="@{/{kind}/{id}(kind=${kind},id=${r.id})}">Chi tiết</a>
+<a th:href="@{/invoices/{id}(id=${r.id})}">Chi tiết</a>
 </td>
 </tr>
 <tr th:if="${#lists.isEmpty(rows)}">
-<td colspan="6" class="empty">Chưa có chứng từ.</td>
+<td colspan="6" class="empty">Chưa có dữ liệu.</td>
 </tr>
 </tbody>
 </table>

@@ -13,50 +13,50 @@ import org.springframework.security.web.access.intercept.AuthorizationFilter;
 
 @Configuration
 public class SecurityConfig {
-    @Bean
-    PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+  @Bean
+  PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  }
 
-    @Bean
-    UserDetailsService users(EmployeeRepository repo) {
-        return name -> {
-            try {
-                return repo.byUsername(name)
-                        .map(EmployeePrincipal::new)
-                        .orElseThrow(() -> new UsernameNotFoundException("Invalid credentials"));
-            } catch (java.sql.SQLException e) {
-                throw new InternalAuthenticationServiceException("Không thể kết nối dữ liệu đăng nhập.", e);
-            }
-        };
-    }
+  @Bean
+  UserDetailsService users(EmployeeRepository repo) {
+    return name -> {
+      try {
+        return repo.byUsername(name)
+            .map(EmployeePrincipal::new)
+            .orElseThrow(() -> new UsernameNotFoundException("Invalid credentials"));
+      } catch (java.sql.SQLException e) {
+        throw new InternalAuthenticationServiceException("Không thể kết nối dữ liệu đăng nhập.", e);
+      }
+    };
+  }
 
-    @Bean
-    SecurityFilterChain security(HttpSecurity http, EmployeeRepository repo) throws Exception {
-        return http.authorizeHttpRequests(
-                        a ->
-                                a.requestMatchers("/login", "/css/**", "/error")
-                                        .permitAll()
-                                        .requestMatchers(
-                                                "/employees/**",
-                                                "/suppliers/**",
-                                                "/imports/**",
-                                                "/categories/**",
-                                                "/reports/**",
-                                                "/products/new",
-                                                "/products/*/edit")
-                                        .hasRole("ADMIN")
-                                        .requestMatchers(HttpMethod.POST, "/products/**")
-                                        .hasRole("ADMIN")
-                                        .anyRequest()
-                                        .authenticated())
-                .formLogin(l -> l.loginPage("/login").defaultSuccessUrl("/products", true).permitAll())
-                .logout(
-                        l ->
-                                l.logoutSuccessUrl("/login?logout")
-                                        .invalidateHttpSession(true)
-                                        .deleteCookies("JSESSIONID"))
-                .addFilterBefore(new AccountStateFilter(repo), AuthorizationFilter.class)
-                .build();
-    }
+  @Bean
+  SecurityFilterChain security(HttpSecurity http, EmployeeRepository repo) throws Exception {
+    return http.authorizeHttpRequests(
+            a ->
+                a.requestMatchers("/login", "/css/**", "/error")
+                    .permitAll()
+                    .requestMatchers(
+                        "/employees/**",
+                        "/suppliers/**",
+                        "/imports/**",
+                        "/categories/**",
+                        "/reports/**",
+                        "/products/new",
+                        "/products/*/edit")
+                    .hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.POST, "/products/**")
+                    .hasRole("ADMIN")
+                    .anyRequest()
+                    .authenticated())
+        .formLogin(l -> l.loginPage("/login").defaultSuccessUrl("/products", true).permitAll())
+        .logout(
+            l ->
+                l.logoutSuccessUrl("/login?logout")
+                    .invalidateHttpSession(true)
+                    .deleteCookies("JSESSIONID"))
+        .addFilterBefore(new AccountStateFilter(repo), AuthorizationFilter.class)
+        .build();
+  }
 }

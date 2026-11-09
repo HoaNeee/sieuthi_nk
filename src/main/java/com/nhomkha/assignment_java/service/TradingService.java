@@ -117,11 +117,11 @@ public class TradingService {
         });
   }
 
-  public List<DocumentHeader> invoices(EmployeePrincipal actor) throws SQLException {
+  public List<Invoice> invoices(EmployeePrincipal actor) throws SQLException {
     return docs.invoices(actor.isAdmin() ? null : actor.getId(), null);
   }
 
-  public DocumentHeader invoice(long id, EmployeePrincipal actor) throws SQLException {
+  public Invoice invoice(long id, EmployeePrincipal actor) throws SQLException {
     return docs.invoices(actor.isAdmin() ? null : actor.getId(), id).stream()
         .findFirst()
         .orElseThrow(
@@ -130,15 +130,15 @@ public class TradingService {
                     org.springframework.http.HttpStatus.NOT_FOUND));
   }
 
-  public List<DocumentLine> invoiceLines(long id, EmployeePrincipal actor) throws SQLException {
+  public List<InvoiceDetail> invoiceLines(long id, EmployeePrincipal actor) throws SQLException {
     return docs.invoiceLines(id, actor.isAdmin() ? null : actor.getId());
   }
 
-  public List<DocumentHeader> imports() throws SQLException {
+  public List<StockImport> imports() throws SQLException {
     return docs.imports(null);
   }
 
-  public DocumentHeader stockImport(long id) throws SQLException {
+  public StockImport stockImport(long id) throws SQLException {
     return docs.imports(id).stream()
         .findFirst()
         .orElseThrow(
@@ -147,7 +147,7 @@ public class TradingService {
                     org.springframework.http.HttpStatus.NOT_FOUND));
   }
 
-  public List<DocumentLine> importLines(long id) throws SQLException {
+  public List<StockImportDetail> importLines(long id) throws SQLException {
     return docs.importLines(id);
   }
 }

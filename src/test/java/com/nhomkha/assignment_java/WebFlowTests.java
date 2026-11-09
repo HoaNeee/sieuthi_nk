@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.nhomkha.assignment_java.config.EmployeePrincipal;
+import com.nhomkha.assignment_java.dto.ReportRow;
 import com.nhomkha.assignment_java.model.*;
 import com.nhomkha.assignment_java.repository.*;
 import com.nhomkha.assignment_java.service.*;
@@ -33,14 +34,19 @@ class WebFlowTests {
   Product product =
       new Product(
           1, "SP001", "Gạo", new BigDecimal("15000.00"), 10, null, 1, 1, "Thực phẩm", "NCC");
-  DocumentHeader doc =
-      new DocumentHeader(
+  Invoice invoice =
+      new Invoice(
           1,
           LocalDateTime.of(2026, 1, 1, 10, 0),
+          2,
+          null,
           "Staff",
           null,
           "TIEN_MAT",
           new BigDecimal("15000"));
+  StockImport stockImport =
+      new StockImport(
+          1, LocalDateTime.of(2026, 1, 1, 10, 0), 1, 1, "Admin", "NCC", new BigDecimal("15000"));
 
   @BeforeEach
   void setup() throws Exception {
@@ -57,14 +63,14 @@ class WebFlowTests {
     when(catalog.category(1)).thenReturn(new Category(1, "Thực phẩm", "Mô tả"));
     when(catalog.supplier(1)).thenReturn(new Supplier(1, "NCC", "0123", "HN", "a@example.test"));
     when(catalog.customer(1)).thenReturn(new Customer(1, "Khách", "0123", 0));
-    when(trading.invoices(any())).thenReturn(List.of(doc));
-    when(trading.imports()).thenReturn(List.of(doc));
-    when(trading.invoice(eq(1L), any())).thenReturn(doc);
-    when(trading.stockImport(1)).thenReturn(doc);
+    when(trading.invoices(any())).thenReturn(List.of(invoice));
+    when(trading.imports()).thenReturn(List.of(stockImport));
+    when(trading.invoice(eq(1L), any())).thenReturn(invoice);
+    when(trading.stockImport(1)).thenReturn(stockImport);
     when(trading.invoiceLines(eq(1L), any()))
-        .thenReturn(List.of(new DocumentLine("Gạo", 1, new BigDecimal("15000"))));
+        .thenReturn(List.of(new InvoiceDetail(1, 1, 1, "Gạo", 1, new BigDecimal("15000"))));
     when(trading.importLines(1))
-        .thenReturn(List.of(new DocumentLine("Gạo", 1, new BigDecimal("15000"))));
+        .thenReturn(List.of(new StockImportDetail(1, 1, 1, "Gạo", 1, new BigDecimal("15000"))));
     when(reports.revenue(any(), any()))
         .thenReturn(List.of(new ReportRow("2026-01-01", new BigDecimal("15000"), 1)));
     when(reports.sales(any(), any()))

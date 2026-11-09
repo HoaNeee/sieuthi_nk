@@ -1,4 +1,4 @@
-package com.nhomkha.assignment_java.model;
+package com.nhomkha.assignment_java.dto;
 
 public class ReportRow {
   private String label;

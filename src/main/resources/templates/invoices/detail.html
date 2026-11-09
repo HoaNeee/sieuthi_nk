@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Chi tiết hóa đơn')}">
+</head>
+<body>
+<header th:replace="~{fragments/layout :: nav}">
+</header>
+<main>
+<div th:replace="~{fragments/layout :: messages}">
+</div>
+<section class="card">
+<p class="eyebrow">HÓA ĐƠN
+</p>
+<h1 th:text="'Hóa đơn #' + ${invoice.id}">
+</h1>
+<p>Thời gian: <b th:text="${#temporals.format(invoice.date,'dd/MM/yyyy HH:mm')}">
+</b>
+</p>
+<p>Nhân viên: <b th:text="${invoice.employeeName}">
+</b>
+</p>
+<p>Khách hàng: <b th:text="${invoice.customerName ?: 'Khách vãng lai'}">
+</b>
+</p>
+<p th:if="${invoice.payment != null}">Thanh toán: <b th:text="${invoice.payment == 'TIEN_MAT' ? 'Tiền mặt' : 'Chuyển khoản'}">
+</b>
+</p>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Sản phẩm</th>
+<th>Số lượng</th>
+<th>Đơn giá giao dịch</th>
+<th>Thành tiền</th>
+</tr>
+</thead>
+<tbody>
+<tr th:each="r : ${lines}">
+<td th:text="${r.productName}">
+</td>
+<td th:text="${r.quantity}">
+</td>
+<td th:text="${#numbers.formatDecimal(r.unitPrice,1,'COMMA',2,'POINT')}">
+</td>
+<td th:text="${#numbers.formatDecimal(r.amount,1,'COMMA',2,'POINT')}">
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2>Tổng tiền: <span th:text="${#numbers.formatDecimal(invoice.total,1,'COMMA',2,'POINT')}">
+</span> VND</h2>
+<a th:href="@{/invoices}">Về danh sách</a>
+</section>
+</main>
+</body>
+</html>
+

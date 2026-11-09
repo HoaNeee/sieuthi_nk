@@ -1,6 +1,6 @@
 package com.nhomkha.assignment_java.repository;
 
-import com.nhomkha.assignment_java.model.ReportRow;
+import com.nhomkha.assignment_java.dto.ReportRow;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.*;

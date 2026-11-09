@@ -15,10 +15,15 @@ public class DatabaseCheckTool {
     }
     String password = System.getenv().getOrDefault("DB_PASSWORD", local.getProperty("DB_PASSWORD"));
     if (password == null || password.isBlank())
-      throw new IllegalStateException("Set DB_PASSWORD in the local .env file or environment first.");
+      throw new IllegalStateException(
+          "Set DB_PASSWORD in the local .env file or environment first.");
     String url =
-        System.getenv().getOrDefault("DB_URL", local.getProperty("DB_URL", "jdbc:oracle:thin:@//localhost:1521/FREEPDB1"));
-    String user = System.getenv().getOrDefault("DB_USERNAME", local.getProperty("DB_USERNAME", "sieuthi"));
+        System.getenv()
+            .getOrDefault(
+                "DB_URL",
+                local.getProperty("DB_URL", "jdbc:oracle:thin:@//localhost:1521/FREEPDB1"));
+    String user =
+        System.getenv().getOrDefault("DB_USERNAME", local.getProperty("DB_USERNAME", "sieuthi"));
     if (!user.equalsIgnoreCase("sieuthi"))
       throw new IllegalStateException(
           "Use application schema SIEUTHI, not an administrative user.");

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Chi tiết phiếu nhập kho')}">
+</head>
+<body>
+<header th:replace="~{fragments/layout :: nav}">
+</header>
+<main>
+<div th:replace="~{fragments/layout :: messages}">
+</div>
+<section class="card">
+<p class="eyebrow">PHIẾU NHẬP KHO
+</p>
+<h1 th:text="'Phiếu nhập kho #' + ${stockImport.id}">
+</h1>
+<p>Thời gian: <b th:text="${#temporals.format(stockImport.date,'dd/MM/yyyy HH:mm')}">
+</b>
+</p>
+<p>Nhân viên: <b th:text="${stockImport.employeeName}">
+</b>
+</p>
+<p>Nhà cung cấp: <b th:text="${stockImport.supplierName}">
+</b>
+</p>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Sản phẩm</th>
+<th>Số lượng</th>
+<th>Đơn giá giao dịch</th>
+<th>Thành tiền</th>
+</tr>
+</thead>
+<tbody>
+<tr th:each="r : ${lines}">
+<td th:text="${r.productName}">
+</td>
+<td th:text="${r.quantity}">
+</td>
+<td th:text="${#numbers.formatDecimal(r.purchasePrice,1,'COMMA',2,'POINT')}">
+</td>
+<td th:text="${#numbers.formatDecimal(r.amount,1,'COMMA',2,'POINT')}">
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2>Tổng tiền: <span th:text="${#numbers.formatDecimal(stockImport.total,1,'COMMA',2,'POINT')}">
+</span> VND</h2>
+<a th:href="@{/imports}">Về danh sách</a>
+</section>
+</main>
+</body>
+</html>
+

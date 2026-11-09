@@ -115,7 +115,7 @@ Chi tiết kiểm thử lỗi, quyền và đồng thời: [docs/TESTING.md](doc
 
 ## Thiết kế và giới hạn MVP
 
-- Schema nằm trong `database/`; Java model dùng class POJO với thuộc tính private, constructor không tham số/đầy đủ và getter/setter, không annotation ORM. Riêng `Cart` giữ các phương thức kiểm soát giỏ hàng; `DocumentLine.getAmount()` tính thành tiền từ số lượng và đơn giá.
+- Schema nằm trong `database/`; Java model dùng class POJO với thuộc tính private, constructor không tham số/đầy đủ và getter/setter, không annotation ORM. Riêng `Cart` giữ các phương thức kiểm soát giỏ hàng; `InvoiceDetail.getAmount()` và `StockImportDetail.getAmount()` tính thành tiền từ số lượng và đơn giá.
 - Controller nhận form; Service điều phối nghiệp vụ; Repository chứa PreparedStatement và map ResultSet rõ ràng.
 - `JdbcTransactions` dùng chung cho các nghiệp vụ nhiều câu lệnh: manual commit/rollback, bảo toàn lỗi gốc, abort connection nếu rollback thất bại.
 - Tiền dùng NUMBER(...,2)/BigDecimal; nhập tối đa 2 chữ số thập phân, không âm. Không làm tròn ngầm; tổng là tổng các dòng.
@@ -127,3 +127,19 @@ Chi tiết kiểm thử lỗi, quyền và đồng thời: [docs/TESTING.md](doc
 - Danh sách sản phẩm phân trang; các danh sách quản trị và chứng từ tải toàn bộ, phù hợp dữ liệu bài tập nhỏ.
 - SQL báo cáo mẫu ở `database/05_reports.sql`. Chưa thêm procedure/function/trigger khi chưa có yêu cầu môn học cụ thể.
 
+
+### Model và bảng nghiệp vụ
+
+| Model | Bảng |
+|---|---|
+| Category | DANH_MUC |
+| Product | SAN_PHAM |
+| Supplier | NHA_CUNG_CAP |
+| Employee | NHAN_VIEN |
+| Customer | KHACH_HANG |
+| Invoice | HOA_DON |
+| InvoiceDetail | CT_HOA_DON |
+| StockImport | PHIEU_NHAP |
+| StockImportDetail | CT_PHIEU_NHAP |
+
+Các model hóa đơn/phiếu nhập có mã PK/FK, cùng tên nhân viên, khách hàng/NCC hoặc sản phẩm từ JOIN để hiển thị. `Invoice.customerId` có thể null cho khách vãng lai. `StockImport.total` là tổng tính từ chi tiết phiếu nhập, không phải cột mới trong database. `unitPrice` là giá bán tại giao dịch; `purchasePrice` là giá nhập. `Cart` là giỏ session; `dto.ReportRow` chứa một dòng thống kê, không tương ứng bảng riêng. `DocumentRepository` và `DocumentController` vẫn nhóm các thao tác chứng từ, nhưng dùng các kiểu dữ liệu và trang riêng cho từng nghiệp vụ.

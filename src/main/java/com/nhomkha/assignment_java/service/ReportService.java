@@ -1,7 +1,7 @@
 package com.nhomkha.assignment_java.service;
 
+import com.nhomkha.assignment_java.dto.ReportRow;
 import com.nhomkha.assignment_java.exception.BusinessException;
-import com.nhomkha.assignment_java.model.ReportRow;
 import com.nhomkha.assignment_java.repository.ReportRepository;
 import java.sql.SQLException;
 import java.time.LocalDate;
