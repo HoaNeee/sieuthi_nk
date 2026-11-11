@@ -21,9 +21,9 @@ public class EmployeeRepository {
         r.getString("HO_TEN"),
         r.getString("CHUC_VU"),
         r.getString("TEN_DANG_NHAP"),
-        r.getString("MAT_KHAU_HASH"),
+        r.getString("MAT_KHAU"),
         r.getString("VAI_TRO"),
-        r.getInt("TRANG_THAI") == 1);
+        "ACTIVE".equals(r.getString("TRANG_THAI")));
   }
 
   public Optional<Employee> byUsername(String username) throws SQLException {
@@ -65,7 +65,7 @@ public class EmployeeRepository {
   public int activeAdmins(Connection c) throws SQLException {
     try (PreparedStatement s =
             c.prepareStatement(
-                "SELECT COUNT(*) FROM NHAN_VIEN WHERE VAI_TRO='ADMIN' AND TRANG_THAI=1");
+                "SELECT COUNT(*) FROM NHAN_VIEN WHERE VAI_TRO='ADMIN' AND TRANG_THAI='ACTIVE'");
         ResultSet r = s.executeQuery()) {
       r.next();
       return r.getInt(1);
@@ -76,17 +76,17 @@ public class EmployeeRepository {
     String sql =
         id == null
             ? "INSERT INTO"
-                + " NHAN_VIEN(HO_TEN,CHUC_VU,TEN_DANG_NHAP,VAI_TRO,TRANG_THAI,MAT_KHAU_HASH,MA_NV)"
+                + " NHAN_VIEN(HO_TEN,CHUC_VU,TEN_DANG_NHAP,VAI_TRO,TRANG_THAI,MAT_KHAU,MA_NV)"
                 + " VALUES(?,?,?,?,?,?,SEQ_NV.NEXTVAL)"
             : "UPDATE NHAN_VIEN SET"
-                + " HO_TEN=?,CHUC_VU=?,TEN_DANG_NHAP=?,VAI_TRO=?,TRANG_THAI=?,MAT_KHAU_HASH=?"
+                + " HO_TEN=?,CHUC_VU=?,TEN_DANG_NHAP=?,VAI_TRO=?,TRANG_THAI=?,MAT_KHAU=?"
                 + " WHERE MA_NV=?";
     try (PreparedStatement s = c.prepareStatement(sql)) {
       s.setString(1, f.getName().trim());
       s.setString(2, f.getTitle());
       s.setString(3, f.getUsername());
       s.setString(4, f.getRole());
-      s.setInt(5, f.getActive() ? 1 : 0);
+      s.setString(5, f.getActive() ? "ACTIVE" : "INACTIVE");
       s.setString(6, hash);
       if (id != null) s.setLong(7, id);
       if (s.executeUpdate() != 1) throw new SQLException("Employee not updated");
@@ -95,7 +95,7 @@ public class EmployeeRepository {
 
   public void password(Connection c, long id, String hash) throws SQLException {
     try (PreparedStatement s =
-        c.prepareStatement("UPDATE NHAN_VIEN SET MAT_KHAU_HASH=? WHERE MA_NV=?")) {
+        c.prepareStatement("UPDATE NHAN_VIEN SET MAT_KHAU=? WHERE MA_NV=?")) {
       s.setString(1, hash);
       s.setLong(2, id);
       if (s.executeUpdate() != 1) throw new SQLException("Employee not updated");
