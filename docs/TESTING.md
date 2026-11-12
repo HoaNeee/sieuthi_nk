@@ -4,8 +4,8 @@
 
 Chạy `.\mvnw.cmd test`.
 
-- `WebFlowTests`: trang nội bộ yêu cầu đăng nhập; STAFF bị chặn GET/POST quản trị; CSRF; login BCrypt; tài khoản khóa; validation; render Thymeleaf các trang chính; giỏ giữ nguyên khi lỗi và xóa sau thành công; HTML không lộ lỗi SQL.
-- `TradingServiceTests`: đọc giá DB, khách vãng lai, khách không tồn tại, thiếu tồn, conditional update thất bại, insert chi tiết lỗi, nhập đúng/sai NCC, cấm STAFF nhập kho, giới hạn hóa đơn theo nhân viên.
+- `WebFlowTests`: trang nội bộ yêu cầu đăng nhập; THU_NGAN bị chặn GET/POST quản trị; CSRF; login BCrypt; tài khoản khóa; validation; render Thymeleaf các trang chính; giỏ giữ nguyên khi lỗi và xóa sau thành công; HTML không lộ lỗi SQL.
+- `TradingServiceTests`: đọc giá DB, khách vãng lai, khách không tồn tại, thiếu tồn, conditional update thất bại, insert chi tiết lỗi, nhập đúng/sai NCC, cấm THU_NGAN nhập kho, giới hạn hóa đơn theo nhân viên.
 - `JdbcTransactionsTests`: cùng connection, commit, rollback, reset autoCommit, giữ lỗi chính; rollback lỗi thì abort và không bật autoCommit.
 - `EmployeeServiceTests`: khóa bảng trước thay đổi tài khoản, bảo vệ ADMIN cuối cùng, BCrypt khi tạo nhân viên, giới hạn byte mật khẩu.
 - `CartTests`: gộp dòng, chặn số lượng không hợp lệ/tràn, snapshot độc lập và giỏ không dùng chung.
@@ -24,18 +24,18 @@ Dùng dữ liệu bài tập riêng. Chạy 00_verify.sql và kiểm tra đúng 
 | Bán đủ | Giỏ 2 đơn vị, giá 12.35 | Tổng 24.70; tồn giảm 2; đúng nhân viên đăng nhập |
 | Bán vượt | Mua 11 khi chỉ có 10 | Không có chứng từ dở dang, giỏ vẫn còn, tồn không âm |
 | Khách vãng lai | Không chọn thành viên | HOA_DON.MA_KH là NULL |
-| Khách thành viên | Chọn khách tồn tại | FK đúng khách, điểm giữ nguyên |
+| Khách thành viên | Chọn khách tồn tại | FK đúng khách, cộng floor(tổng tiền / 10000) điểm trong cùng transaction |
 | Giá lịch sử | Bán hàng rồi ADMIN đổi giá sản phẩm | Hóa đơn cũ giữ DON_GIA cũ và tổng cũ |
-| Thay giá khi đang mở giỏ | ADMIN đổi giá; STAFF thanh toán sau | Dùng giá DB ở lúc checkout |
+| Thay giá khi đang mở giỏ | ADMIN đổi giá; THU_NGAN thanh toán sau | Dùng giá DB ở lúc checkout |
 | Hai lượt bán đồng thời | Hai trình duyệt/phiên, mỗi giỏ mua 4 khi tồn là 5 | Chỉ một lượt thành công; lượt còn lại báo thiếu; tồn cuối 1 |
 | Hai sản phẩm ngược thứ tự | Hai giỏ chứa cùng 2 SP nhưng thêm theo thứ tự khác | Khóa theo MA_SP; không deadlock do thứ tự giỏ |
 | Gửi lặp checkout | Bấm hai lần / hai POST cùng session | Chỉ một hóa đơn cho giỏ đó; lần sau giỏ trống |
 | Gửi lặp nhập | Hai POST cùng token phiếu | Chỉ một phiếu nhập, kho chỉ tăng một lần |
-| STAFF đoán ID | Mở hóa đơn nhân viên khác | 404, không lộ chi tiết |
-| STAFF giả nhân viên | Thêm MA_NV/employeeId vào POST | Không thay nhân viên lập hóa đơn |
+| THU_NGAN đoán ID | Mở hóa đơn nhân viên khác | 404, không lộ chi tiết |
+| THU_NGAN giả nhân viên | Thêm MA_NV/employeeId vào POST | Không thay nhân viên lập hóa đơn |
 | Sửa tồn/điểm qua POST | Thêm stock/points vào form sản phẩm/khách | Repository không ghi những cột này |
 | SQL injection | Tìm tên chứa dấu nháy, phần SQL như ' OR 1=1 -- | Là giá trị bind, không thay cấu trúc câu SQL |
-| Khóa tài khoản | ADMIN khóa STAFF đang đăng nhập | Request tiếp theo hết phiên; không login lại được |
+| Khóa tài khoản | ADMIN khóa THU_NGAN đang đăng nhập | Request tiếp theo hết phiên; không login lại được |
 | ADMIN cuối cùng | Thử khóa/hạ quyền ADMIN cuối | Bị từ chối, dữ liệu không đổi |
 | Hai ADMIN hạ quyền đồng thời | Hai phiên cùng hạ quyền hai ADMIN còn lại | Một ADMIN hoạt động vẫn được giữ |
 | Mất kết nối | Dừng Oracle trong môi trường thử | Thông báo thân thiện, không lộ SQL/credential |

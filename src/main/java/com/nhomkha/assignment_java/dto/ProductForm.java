@@ -3,6 +3,14 @@ package com.nhomkha.assignment_java.dto;
 import jakarta.validation.constraints.*;
 
 public class ProductForm {
+  @NotBlank @Size(max = 20) private String unit;
+  @NotNull @DecimalMin("0") @Digits(integer = 13, fraction = 2)
+  private java.math.BigDecimal purchasePrice;
+  public String getUnit() { return unit; }
+  public void setUnit(String value) { unit = value; }
+  public java.math.BigDecimal getPurchasePrice() { return purchasePrice; }
+  public void setPurchasePrice(java.math.BigDecimal value) { purchasePrice = value; }
+
   @NotBlank
   @Size(max = 150)
   private String name;
@@ -15,6 +23,7 @@ public class ProductForm {
     this.name = value;
   }
 
+  @NotBlank
   @Size(max = 80)
   @Pattern(regexp = "[^\\s]*", message = "Barcode không được chứa khoảng trắng")
   private String barcode;

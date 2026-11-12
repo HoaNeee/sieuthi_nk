@@ -49,6 +49,8 @@
 <small class="field-error" th:errors="*{expiry}">
 </small>
 </label>
+<label>Đơn vị tính<input th:field="*{unit}" required maxlength="20"><small class="field-error" th:errors="*{unit}"></small></label>
+<label>Giá nhập tham khảo<input type="number" th:field="*{purchasePrice}" min="0" step="0.01" required><small class="field-error" th:errors="*{purchasePrice}"></small></label>
 <div class="actions">
 <button type="submit">Lưu thông tin</button>
 <a class="button secondary" th:href="@{/products}">Về sản phẩm</a>

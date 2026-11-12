@@ -1,6 +1,13 @@
 package com.nhomkha.assignment_java.model;
 
 public class Product {
+  private String unit;
+  private java.math.BigDecimal purchasePrice;
+  public String getUnit() { return unit; }
+  public void setUnit(String value) { unit = value; }
+  public java.math.BigDecimal getPurchasePrice() { return purchasePrice; }
+  public void setPurchasePrice(java.math.BigDecimal value) { purchasePrice = value; }
+
   private long id;
   private String barcode;
   private String name;

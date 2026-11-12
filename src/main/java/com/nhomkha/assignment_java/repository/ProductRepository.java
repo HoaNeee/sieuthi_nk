@@ -20,7 +20,7 @@ public class ProductRepository {
 
   private Product map(ResultSet r) throws SQLException {
     java.sql.Date expiry = r.getDate("HAN_SU_DUNG");
-    return new Product(
+    Product product = new Product(
         r.getLong("MA_SP"),
         r.getString("BARCODE"),
         r.getString("TEN_SP"),
@@ -31,6 +31,9 @@ public class ProductRepository {
         r.getLong("MA_NCC"),
         r.getString("TEN_DM"),
         r.getString("TEN_NCC"));
+    product.setUnit(r.getString("DON_VI_TINH"));
+    product.setPurchasePrice(r.getBigDecimal("GIA_NHAP"));
+    return product;
   }
 
   public List<Product> search(String query, Long category, int page) throws SQLException {
@@ -87,9 +90,9 @@ public class ProductRepository {
   public void save(Long id, ProductForm f) throws SQLException {
     String sql =
         id == null
-            ? "INSERT INTO SAN_PHAM(TEN_SP,BARCODE,GIA_BAN,MA_DM,MA_NCC,HAN_SU_DUNG,MA_SP)"
-                + " VALUES(?,?,?,?,?,?,SEQ_SP.NEXTVAL)"
-            : "UPDATE SAN_PHAM SET TEN_SP=?,BARCODE=?,GIA_BAN=?,MA_DM=?,MA_NCC=?,HAN_SU_DUNG=?"
+            ? "INSERT INTO SAN_PHAM(TEN_SP,BARCODE,GIA_BAN,MA_DM,MA_NCC,HAN_SU_DUNG,DON_VI_TINH,GIA_NHAP)"
+                + " VALUES(?,?,?,?,?,?,?,?)"
+            : "UPDATE SAN_PHAM SET TEN_SP=?,BARCODE=?,GIA_BAN=?,MA_DM=?,MA_NCC=?,HAN_SU_DUNG=?,DON_VI_TINH=?,GIA_NHAP=?"
                 + " WHERE MA_SP=?";
     try (Connection c = ds.getConnection();
         PreparedStatement s = c.prepareStatement(sql)) {
@@ -99,7 +102,9 @@ public class ProductRepository {
       s.setLong(4, f.getCategoryId());
       s.setLong(5, f.getSupplierId());
       s.setDate(6, f.getExpiry() == null ? null : java.sql.Date.valueOf(f.getExpiry()));
-      if (id != null) s.setLong(7, id);
+      s.setString(7, f.getUnit().trim());
+      s.setBigDecimal(8, f.getPurchasePrice());
+      if (id != null) s.setLong(9, id);
       if (s.executeUpdate() != 1)
         throw new com.nhomkha.assignment_java.exception.BusinessException(
             "Không tìm thấy sản phẩm.");

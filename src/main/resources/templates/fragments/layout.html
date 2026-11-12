@@ -11,8 +11,7 @@
 <a class="brand" th:href="@{/products}">SIEUTHI<span>Quản lý nội bộ</span>
 </a>
 <nav th:if="${loginName != null}">
-<a th:href="@{/products}">Sản phẩm</a>
-<a th:href="@{/pos}">Bán hàng</a>
+<a th:href="@{/products}">Sản phẩm &amp; Bán hàng</a>
 <a th:href="@{/invoices}">Hóa đơn</a>
 <a th:href="@{/customers}">Khách hàng</a>
 <th:block th:if="${admin}">

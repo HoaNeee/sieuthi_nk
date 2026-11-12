@@ -55,7 +55,7 @@ class EmployeeServiceTests {
   @Test
   void lastAdminCannotBeDemoted() throws Exception {
     var f = form();
-    f.setRole("STAFF");
+    f.setRole("THU_NGAN");
     assertThrows(BusinessException.class, () -> service.save(1L, f, new EmployeePrincipal(admin)));
     verify(c).rollback();
   }
@@ -64,7 +64,7 @@ class EmployeeServiceTests {
   void anotherActiveAdminAllowsDemotion() throws Exception {
     when(repo.activeAdmins(c)).thenReturn(2);
     var f = form();
-    f.setRole("STAFF");
+    f.setRole("THU_NGAN");
     service.save(1L, f, new EmployeePrincipal(admin));
     verify(repo).save(c, 1L, f, "oldHash");
     verify(c).commit();
@@ -74,7 +74,7 @@ class EmployeeServiceTests {
   void newEmployeePasswordIsHashed() throws Exception {
     var f = form();
     f.setUsername("staff");
-    f.setRole("STAFF");
+    f.setRole("THU_NGAN");
     f.setPassword("testing-only-123");
     service.save(null, f, new EmployeePrincipal(admin));
     var hash = org.mockito.ArgumentCaptor.forClass(String.class);

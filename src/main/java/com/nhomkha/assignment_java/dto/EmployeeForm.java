@@ -50,7 +50,7 @@ public class EmployeeForm {
   }
 
   @NotNull
-  @Pattern(regexp = "ADMIN|STAFF")
+  @Pattern(regexp = "ADMIN|THU_NGAN")
   private String role;
 
   public String getRole() {

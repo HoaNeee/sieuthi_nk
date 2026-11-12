@@ -31,7 +31,7 @@ public class EmployeeController {
   @GetMapping("/new")
   String create(Model m) {
     var f = new EmployeeForm();
-    f.setRole("STAFF");
+    f.setRole("THU_NGAN");
     m.addAttribute("form", f);
     return "employees/form";
   }

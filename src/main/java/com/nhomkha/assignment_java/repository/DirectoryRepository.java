@@ -31,7 +31,7 @@ public class DirectoryRepository {
         PreparedStatement s =
             c.prepareStatement(
                 id == null
-                    ? "INSERT INTO DANH_MUC(TEN_DM,MO_TA,MA_DM) VALUES(?,?,SEQ_DM.NEXTVAL)"
+                    ? "INSERT INTO DANH_MUC(TEN_DM,MO_TA) VALUES(?,?)"
                     : "UPDATE DANH_MUC SET TEN_DM=?,MO_TA=? WHERE MA_DM=?")) {
       s.setString(1, f.getName().trim());
       s.setString(2, f.getDescription());
@@ -62,8 +62,8 @@ public class DirectoryRepository {
         PreparedStatement s =
             c.prepareStatement(
                 id == null
-                    ? "INSERT INTO NHA_CUNG_CAP(TEN_NCC,SDT,DIA_CHI,EMAIL,MA_NCC)"
-                        + " VALUES(?,?,?,?,SEQ_NCC.NEXTVAL)"
+                    ? "INSERT INTO NHA_CUNG_CAP(TEN_NCC,SDT,DIA_CHI,EMAIL)"
+                        + " VALUES(?,?,?,?)"
                     : "UPDATE NHA_CUNG_CAP SET TEN_NCC=?,SDT=?,DIA_CHI=?,EMAIL=? WHERE MA_NCC=?")) {
       s.setString(1, f.getName().trim());
       s.setString(2, f.getPhone());
@@ -96,13 +96,26 @@ public class DirectoryRepository {
     }
   }
 
+  public long createCustomer(CustomerForm f) throws SQLException {
+    try (Connection c = ds.getConnection();
+        PreparedStatement s = c.prepareStatement(
+            "INSERT INTO KHACH_HANG(HO_TEN,SDT) VALUES(?,?)", new String[]{"MA_KH"})) {
+      s.setString(1, f.getName().trim());
+      s.setString(2, f.getPhone());
+      check(s.executeUpdate());
+      try (ResultSet keys = s.getGeneratedKeys()) {
+        if (!keys.next()) throw new SQLException("Missing customer ID");
+        return keys.getLong(1);
+      }
+    }
+  }
+
   public void saveCustomer(Long id, CustomerForm f) throws SQLException {
+    if (id == null) { createCustomer(f); return; }
     try (Connection c = ds.getConnection();
         PreparedStatement s =
             c.prepareStatement(
-                id == null
-                    ? "INSERT INTO KHACH_HANG(HO_TEN,SDT,MA_KH) VALUES(?,?,SEQ_KH.NEXTVAL)"
-                    : "UPDATE KHACH_HANG SET HO_TEN=?,SDT=? WHERE MA_KH=?")) {
+                "UPDATE KHACH_HANG SET HO_TEN=?,SDT=? WHERE MA_KH=?")) {
       s.setString(1, f.getName().trim());
       s.setString(2, f.getPhone());
       if (id != null) s.setLong(3, id);

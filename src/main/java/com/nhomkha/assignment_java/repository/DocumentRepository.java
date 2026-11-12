@@ -15,22 +15,6 @@ public class DocumentRepository {
     this.ds = ds;
   }
 
-  public long nextInvoice(Connection c) throws SQLException {
-    try (PreparedStatement s = c.prepareStatement("SELECT SEQ_HD.NEXTVAL FROM DUAL");
-        ResultSet r = s.executeQuery()) {
-      r.next();
-      return r.getLong(1);
-    }
-  }
-
-  public long nextImport(Connection c) throws SQLException {
-    try (PreparedStatement s = c.prepareStatement("SELECT SEQ_PN.NEXTVAL FROM DUAL");
-        ResultSet r = s.executeQuery()) {
-      r.next();
-      return r.getLong(1);
-    }
-  }
-
   public boolean customerExists(Connection c, long id) throws SQLException {
     try (PreparedStatement s = c.prepareStatement("SELECT MA_KH FROM KHACH_HANG WHERE MA_KH=?")) {
       s.setLong(1, id);
@@ -40,18 +24,36 @@ public class DocumentRepository {
     }
   }
 
-  public void invoice(
-      Connection c, long id, long employee, Long customer, String payment, BigDecimal total)
+  public void addCustomerPoints(Connection c, long customerId, long points) throws SQLException {
+    if (points <= 0 || points > 999999999L)
+      throw new com.nhomkha.assignment_java.exception.BusinessException("Điểm tích lũy vượt giới hạn cho phép.");
+    try (PreparedStatement s = c.prepareStatement(
+        "UPDATE KHACH_HANG SET DIEM_TICH_LUY=DIEM_TICH_LUY+?"
+            + " WHERE MA_KH=? AND DIEM_TICH_LUY<=999999999-?")) {
+      s.setLong(1, points);
+      s.setLong(2, customerId);
+      s.setLong(3, points);
+      if (s.executeUpdate() != 1)
+        throw new com.nhomkha.assignment_java.exception.BusinessException(
+            "Không thể cộng điểm: khách hàng không còn tồn tại hoặc điểm vượt giới hạn.");
+    }
+  }
+
+  public long invoice(
+      Connection c, long employee, Long customer, String payment, BigDecimal total)
       throws SQLException {
     try (PreparedStatement s =
         c.prepareStatement(
-            "INSERT INTO HOA_DON(MA_HD,MA_NV,MA_KH,HINH_THUC_TT,TONG_TIEN) VALUES(?,?,?,?,?)")) {
-      s.setLong(1, id);
-      s.setLong(2, employee);
-      s.setObject(3, customer, Types.NUMERIC);
-      s.setString(4, payment);
-      s.setBigDecimal(5, total);
+            "INSERT INTO HOA_DON(MA_NV,MA_KH,HINH_THUC_TT,TONG_TIEN) VALUES(?,?,?,?)", new String[]{"MA_HD"})) {
+      s.setLong(1, employee);
+      s.setObject(2, customer, Types.NUMERIC);
+      s.setString(3, payment);
+      s.setBigDecimal(4, total);
       check(s.executeUpdate());
+      try (ResultSet keys = s.getGeneratedKeys()) {
+        if (!keys.next()) throw new SQLException("Missing invoice ID");
+        return keys.getLong(1);
+      }
     }
   }
 
@@ -59,8 +61,8 @@ public class DocumentRepository {
       throws SQLException {
     try (PreparedStatement s =
         c.prepareStatement(
-            "INSERT INTO CT_HOA_DON(MA_CT,MA_HD,MA_SP,SO_LUONG,DON_GIA)"
-                + " VALUES(SEQ_CT.NEXTVAL,?,?,?,?)")) {
+            "INSERT INTO CT_HOA_DON(MA_HD,MA_SP,SO_LUONG,DON_GIA)"
+                + " VALUES(?,?,?,?)")) {
       s.setLong(1, invoice);
       s.setLong(2, product);
       s.setInt(3, quantity);
@@ -69,13 +71,16 @@ public class DocumentRepository {
     }
   }
 
-  public void stockImport(Connection c, long id, long employee, long supplier) throws SQLException {
+  public long stockImport(Connection c, long employee, long supplier) throws SQLException {
     try (PreparedStatement s =
-        c.prepareStatement("INSERT INTO PHIEU_NHAP(MA_PN,MA_NV,MA_NCC) VALUES(?,?,?)")) {
-      s.setLong(1, id);
-      s.setLong(2, employee);
-      s.setLong(3, supplier);
+        c.prepareStatement("INSERT INTO PHIEU_NHAP(MA_NV,MA_NCC) VALUES(?,?)", new String[]{"MA_PN"})) {
+      s.setLong(1, employee);
+      s.setLong(2, supplier);
       check(s.executeUpdate());
+      try (ResultSet keys = s.getGeneratedKeys()) {
+        if (!keys.next()) throw new SQLException("Missing import ID");
+        return keys.getLong(1);
+      }
     }
   }
 
@@ -83,8 +88,8 @@ public class DocumentRepository {
       throws SQLException {
     try (PreparedStatement s =
         c.prepareStatement(
-            "INSERT INTO CT_PHIEU_NHAP(MA_CTPN,MA_PN,MA_SP,SO_LUONG,DON_GIA_NHAP)"
-                + " VALUES(SEQ_CTPN.NEXTVAL,?,?,?,?)")) {
+            "INSERT INTO CT_PHIEU_NHAP(MA_PN,MA_SP,SO_LUONG,DON_GIA_NHAP)"
+                + " VALUES(?,?,?,?)")) {
       s.setLong(1, document);
       s.setLong(2, product);
       s.setInt(3, quantity);

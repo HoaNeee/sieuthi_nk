@@ -1,17 +1,19 @@
 # Hệ thống quản lý siêu thị nội bộ
 
+**Cập nhật POS 12/11/2026:** đã đối chiếu Oracle SIEUTHI/XEPDB1, sửa hóa đơn sang IDENTITY và để trigger trừ kho một lần. Trang `/products` gồm cả giỏ và thêm nhanh khách hàng. Xem [ghi chú Oracle POS](docs/ORACLE_POS.md); thông tin kiểm chứng cũ bên dưới chỉ phản ánh lần triển khai ban đầu.
+
 Ứng dụng bài tập Java chạy local Windows: Java 21, Spring Boot 4.1.0, Spring MVC, Thymeleaf, Spring Security, Oracle và JDBC thuần. Không dùng Docker, ORM, JdbcTemplate hoặc frontend tách rời.
 
 ## Chức năng đã triển khai
 
 - Đăng nhập/đăng xuất, đổi mật khẩu; BCrypt; tài khoản khóa không đăng nhập được.
-- Hai vai trò ADMIN/STAFF. Phiên bị thu hồi ở yêu cầu kế tiếp khi tài khoản bị khóa, đổi quyền, đổi tên đăng nhập hoặc đổi mật khẩu.
+- Hai vai trò ADMIN/THU_NGAN. Phiên bị thu hồi ở yêu cầu kế tiếp khi tài khoản bị khóa, đổi quyền, đổi tên đăng nhập hoặc đổi mật khẩu.
 - Catalog sản phẩm: tìm tên/barcode, lọc danh mục, phân trang 20 dòng; ADMIN thêm/sửa sản phẩm và danh mục.
 - ADMIN quản lý NCC và nhân viên; khóa/mở, đổi quyền, đặt lại mật khẩu; bảo vệ ADMIN hoạt động cuối cùng bằng khóa bảng trong transaction.
-- ADMIN/STAFF thêm/sửa thông tin khách hàng; chỉ xem điểm tích lũy.
+- ADMIN/THU_NGAN thêm/sửa thông tin khách hàng; xem điểm tích lũy tự cộng sau khi mua hàng.
 - Giỏ POS riêng trong session; thêm, gộp sản phẩm trùng, sửa số lượng, xóa dòng.
-- Checkout đọc lại giá/tồn, khóa sản phẩm theo thứ tự mã, trừ kho có điều kiện; hóa đơn và chi tiết dùng cùng connection/transaction.
-- STAFF chỉ xem hóa đơn mình lập; ADMIN xem tất cả. Giá lịch sử lấy từ chi tiết hóa đơn.
+- Checkout đọc lại giá/tồn, khóa sản phẩm theo thứ tự mã; trigger trừ kho khi ghi chi tiết, cùng connection/transaction.
+- THU_NGAN chỉ xem hóa đơn mình lập; ADMIN xem tất cả. Giá lịch sử lấy từ chi tiết hóa đơn.
 - Nhập kho nhiều dòng, kiểm tra đúng NCC, cộng kho một lần; token form chống gửi lặp.
 - Báo cáo doanh thu theo ngày, bán theo sản phẩm, tồn kho hiện tại.
 - Giao diện tiếng Việt, validation, CSRF, Post/Redirect/Get và thông báo lỗi không lộ SQL.
@@ -48,7 +50,7 @@ Bộ kiểm thử không cần mật khẩu DB thật và không tự tạo data
 
 Kết nối SQL Developer/SQLcl bằng SIEUTHI trong FREEPDB1, chạy thủ công theo thứ tự trên **schema mới**:
 
-1. `database/01_schema.sql`: 9 bảng, PK, 10 FK và check constraints; 9 sequence.
+1. `database/01_schema.sql`: 9 bảng, PK, 10 FK và check constraints; IDENTITY cho cả 9 khóa chính.
 2. `database/02_indexes.sql`: index FK và ngày hóa đơn.
 3. Tạo hash BCrypt cho mật khẩu ADMIN bằng công cụ Java dưới đây.
 4. `database/03_seed.sql`: hỏi hash BCrypt dạng ẩn, tạo user ứng dụng `admin`, một danh mục, NCC và sản phẩm mẫu có tồn kho 0.
@@ -105,10 +107,10 @@ Mở [http://localhost:8080](http://localhost:8080). Đăng nhập `admin` bằn
 
 1. ADMIN tạo danh mục và NCC → tạo sản phẩm (tồn mặc định 0).
 2. Vào Nhập kho → lập phiếu, chọn đúng NCC và sản phẩm, nhập số lượng/giá.
-3. Tạo STAFF, đăng xuất và đăng nhập STAFF.
+3. Tạo THU_NGAN, đăng xuất và đăng nhập THU_NGAN.
 4. Tìm sản phẩm → thêm vào giỏ → chỉnh số lượng → chọn khách thành viên hoặc khách vãng lai → ghi nhận tiền mặt/chuyển khoản → lập hóa đơn.
 5. Kiểm tra hóa đơn, giá lưu tại giao dịch và tồn kho; thử số lượng vượt tồn.
-6. STAFF không vào được trang quản trị hoặc hóa đơn của nhân viên khác.
+6. THU_NGAN không vào được trang quản trị hoặc hóa đơn của nhân viên khác.
 7. Đăng nhập ADMIN → báo cáo theo khoảng ngày.
 
 Chi tiết kiểm thử lỗi, quyền và đồng thời: [docs/TESTING.md](docs/TESTING.md).
@@ -120,10 +122,10 @@ Chi tiết kiểm thử lỗi, quyền và đồng thời: [docs/TESTING.md](doc
 - `JdbcTransactions` dùng chung cho các nghiệp vụ nhiều câu lệnh: manual commit/rollback, bảo toàn lỗi gốc, abort connection nếu rollback thất bại.
 - Tiền dùng NUMBER(...,2)/BigDecimal; nhập tối đa 2 chữ số thập phân, không âm. Không làm tròn ngầm; tổng là tổng các dòng.
 - POS gộp sản phẩm trùng, tối đa 100 sản phẩm. Phiếu nhập tối đa 100 dòng; sản phẩm trùng giữ riêng đơn giá nhập, không đặt unique constraint mới.
-- Tồn kho không sửa qua form sản phẩm. Không thêm trigger cập nhật kho vì Java đã thực hiện cập nhật.
+- Tồn kho không sửa qua form sản phẩm. Trigger chi tiết hóa đơn/phiếu nhập cập nhật kho; Java chỉ khóa và kiểm tra tồn, không cộng/trừ thêm.
 - Hạn dùng ở sản phẩm, cho phép trống, không quản lý lô; chưa có quy tắc chặn bán theo hạn dùng.
 - Tiền mặt/chuyển khoản chỉ là thông tin ghi nhận, không tích hợp thanh toán thật.
-- Không tự cộng/trừ/sửa điểm, không xóa cứng lịch sử/nhân viên/khách hàng. Không có hủy/hoàn, VAT, khuyến mãi.
+- Tự cộng 1 điểm mỗi 10.000đ trên tổng hóa đơn thành viên, làm tròn xuống trong cùng transaction; chưa đổi điểm giảm giá và không sửa điểm thủ công, không xóa cứng lịch sử/nhân viên/khách hàng. Không có hủy/hoàn, VAT, khuyến mãi.
 - Danh sách sản phẩm phân trang; các danh sách quản trị và chứng từ tải toàn bộ, phù hợp dữ liệu bài tập nhỏ.
 - SQL báo cáo mẫu ở `database/05_reports.sql`. Chưa thêm procedure/function/trigger khi chưa có yêu cầu môn học cụ thể.
 

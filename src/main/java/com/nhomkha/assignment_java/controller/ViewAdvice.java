@@ -35,6 +35,8 @@ public class ViewAdvice {
   }
 
   public static String sqlMessage(SQLException ex) {
+    org.slf4j.LoggerFactory.getLogger(ViewAdvice.class).warn("Database operation failed: code={}, state={}", ex.getErrorCode(), ex.getSQLState());
+    if (ex.getErrorCode() == 2289) return "Thiếu sequence trong database. Vui lòng kiểm tra cấu trúc bảng và cơ chế sinh mã.";
     if (ex.getErrorCode() == 1)
       return "Dữ liệu bị trùng (barcode hoặc tên đăng nhập). Vui lòng kiểm tra.";
     if (ex.getErrorCode() == 2291)

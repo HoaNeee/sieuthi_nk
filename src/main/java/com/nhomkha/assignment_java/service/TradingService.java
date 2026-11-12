@@ -73,13 +73,15 @@ public class TradingService {
           }
           if (total.compareTo(new BigDecimal("9999999999999999.99")) > 0)
             throw new BusinessException("Tổng tiền vượt giới hạn hóa đơn.");
-          long id = docs.nextInvoice(c);
-          docs.invoice(c, id, principal.getId(), form.getCustomerId(), form.getPayment(), total);
+          long id = docs.invoice(c, principal.getId(), form.getCustomerId(), form.getPayment(), total);
           for (var entry : cart.entrySet()) {
-            if (!products.decrease(c, entry.getKey(), entry.getValue()))
-              throw new BusinessException("Tồn kho đã thay đổi. Vui lòng kiểm tra lại.");
+            // Rows remain locked until commit; the Oracle detail trigger decrements stock once.
             docs.invoiceLine(
                 c, id, entry.getKey(), entry.getValue(), current.get(entry.getKey()).getPrice());
+          }
+          if (form.getCustomerId() != null) {
+            long points = total.divideToIntegralValue(new BigDecimal("10000")).longValueExact();
+            if (points > 0) docs.addCustomerPoints(c, form.getCustomerId(), points);
           }
           return id;
         });
@@ -95,22 +97,22 @@ public class TradingService {
     return tx.run(
         c -> {
           actor(c, principal, true);
+          Map<Long, Long> quantities = new HashMap<>();
           for (var line : lines) {
             Product p =
                 products
                     .find(c, line.getProductId(), true)
                     .orElseThrow(() -> new BusinessException("Sản phẩm không tồn tại."));
+            long quantity = quantities.merge(p.getId(), (long) line.getQuantity(), Long::sum);
+            if (quantity + p.getStock() > 999999999L)
+              throw new BusinessException("Tồn kho vượt giới hạn cho phép.");
             if (p.getSupplierId() != form.getSupplierId())
               throw new BusinessException(
                   "Sản phẩm " + p.getName() + " không thuộc nhà cung cấp đã chọn.");
           }
-          long id = docs.nextImport(c);
-          docs.stockImport(c, id, principal.getId(), form.getSupplierId());
+          long id = docs.stockImport(c, principal.getId(), form.getSupplierId());
           for (var line : lines) {
-            if (!products.increase(
-                c, line.getProductId(), line.getQuantity(), form.getSupplierId()))
-              throw new BusinessException(
-                  "Không thể tăng tồn kho: vượt giới hạn hoặc nhà cung cấp thay đổi.");
+            // Locked rows were validated above; TRG_CTPN_TON_KHO increases stock once.
             docs.importLine(c, id, line.getProductId(), line.getQuantity(), line.getPrice());
           }
           return id;

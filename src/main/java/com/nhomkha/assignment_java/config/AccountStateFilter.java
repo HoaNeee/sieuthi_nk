@@ -27,7 +27,7 @@ public class AccountStateFilter extends OncePerRequestFilter {
         if (e.isEmpty()
             || !e.get().isActive()
             || e.get().getId() != principal.getId()
-            || !e.get().getRole().equals(principal.isAdmin() ? "ADMIN" : "STAFF")
+            || !e.get().getRole().equals(principal.isAdmin() ? "ADMIN" : "THU_NGAN")
             || !e.get().getPasswordHash().equals(principal.getCredentialVersion())) {
           SecurityContextHolder.clearContext();
           if (request.getSession(false) != null) request.getSession(false).invalidate();

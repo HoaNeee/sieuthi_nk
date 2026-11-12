@@ -15,6 +15,7 @@ public class CustomerForm {
     this.name = value;
   }
 
+  @NotBlank
   @Size(max = 20)
   private String phone;
 

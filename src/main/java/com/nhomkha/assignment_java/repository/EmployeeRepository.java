@@ -76,8 +76,8 @@ public class EmployeeRepository {
     String sql =
         id == null
             ? "INSERT INTO"
-                + " NHAN_VIEN(HO_TEN,CHUC_VU,TEN_DANG_NHAP,VAI_TRO,TRANG_THAI,MAT_KHAU,MA_NV)"
-                + " VALUES(?,?,?,?,?,?,SEQ_NV.NEXTVAL)"
+                + " NHAN_VIEN(HO_TEN,CHUC_VU,TEN_DANG_NHAP,VAI_TRO,TRANG_THAI,MAT_KHAU)"
+                + " VALUES(?,?,?,?,?,?)"
             : "UPDATE NHAN_VIEN SET"
                 + " HO_TEN=?,CHUC_VU=?,TEN_DANG_NHAP=?,VAI_TRO=?,TRANG_THAI=?,MAT_KHAU=?"
                 + " WHERE MA_NV=?";

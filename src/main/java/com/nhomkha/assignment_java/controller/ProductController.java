@@ -20,24 +20,6 @@ public class ProductController {
     this.catalog = catalog;
   }
 
-  @GetMapping
-  String list(
-      @RequestParam(defaultValue = "") String q,
-      @RequestParam(required = false) Long category,
-      @RequestParam(defaultValue = "0") int page,
-      Model m)
-      throws SQLException {
-    page = Math.max(0, page);
-    var products = catalog.search(q, category, page);
-    m.addAttribute("products", products.size() > 20 ? products.subList(0, 20) : products);
-    m.addAttribute("hasNext", products.size() > 20);
-    m.addAttribute("page", page);
-    m.addAttribute("q", q);
-    m.addAttribute("category", category);
-    m.addAttribute("categories", catalog.categories());
-    return "products/list";
-  }
-
   @GetMapping("/new")
   String create(Model m) throws SQLException {
     m.addAttribute("form", new ProductForm());
@@ -49,6 +31,8 @@ public class ProductController {
     var p = catalog.product(id);
     var f = new ProductForm();
     f.setName(p.getName());
+    f.setUnit(p.getUnit());
+    f.setPurchasePrice(p.getPurchasePrice());
     f.setBarcode(p.getBarcode());
     f.setPrice(p.getPrice());
     f.setCategoryId(p.getCategoryId());

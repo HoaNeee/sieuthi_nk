@@ -5,17 +5,17 @@
 <body>
 <header th:replace="~{fragments/layout :: nav}">
 </header>
-<main>
+<main class="sales-page">
 <div th:replace="~{fragments/layout :: messages}">
 </div>
 <div class="heading">
 <div>
-<p class="eyebrow">DANH MỤC HÀNG HÓA</p>
-<h1>Sản phẩm</h1>
+<p class="eyebrow">BÁN HÀNG TẠI QUẦY</p>
+<h1>Sản phẩm &amp; bán hàng</h1>
 </div>
 <a class="button" th:if="${admin}" th:href="@{/products/new}">+ Thêm sản phẩm</a>
 </div>
-<form class="toolbar" th:action="@{/products}" method="get">
+<div class="sales-layout"><section class="catalog-panel"><form class="toolbar" th:action="@{/products}" method="get">
 <input name="q" th:value="${q}" placeholder="Tìm tên sản phẩm hoặc barcode" aria-label="Tìm sản phẩm">
 <select name="category" aria-label="Danh mục">
 <option value="">Tất cả danh mục</option>
@@ -24,64 +24,72 @@
 </select>
 <button>Tìm kiếm</button>
 </form>
-<div class="table-wrap">
-<table>
-<thead>
-<tr>
-<th>Mã / Barcode</th>
-<th>Sản phẩm</th>
-<th>Danh mục / NCC</th>
-<th>Giá bán</th>
-<th>Tồn</th>
-<th>Hạn dùng</th>
-<th>Thao tác</th>
-</tr>
-</thead>
-<tbody>
+<div class="table-wrap catalog-table">
+<table><thead><tr><th>Sản phẩm</th><th>Giá bán / Tồn</th><th>Thêm hàng</th></tr></thead><tbody>
 <tr th:each="p : ${products}">
-<td>
-<b th:text="${p.id}">
-</b>
-<small th:text="${p.barcode}">
-</small>
-</td>
-<td th:text="${p.name}">
-</td>
-<td>
-<span th:text="${p.categoryName}">
-</span>
-<small th:text="${p.supplierName}">
-</small>
-</td>
-<td class="money" th:text="${#numbers.formatDecimal(p.price,1,'COMMA',2,'POINT')}">
-</td>
-<td th:text="${p.stock}">
-</td>
-<td th:text="${p.expiry ?: '—'}">
-</td>
-<td>
-<form class="inline" th:action="@{/pos/items}" method="post">
+<td><strong class="product-name" th:text="${p.name}"></strong>
+<small th:text="${'#' + p.id + ' · ' + (p.barcode ?: 'Chưa có barcode')}"></small>
+<small th:text="${p.categoryName + ' · ' + p.supplierName}"></small>
+<small th:if="${p.expiry != null}" th:text="${'HSD: ' + p.expiry}"></small></td>
+<td><strong class="money" th:text="${#numbers.formatDecimal(p.price,1,'COMMA',2,'POINT') + ' đ'}"></strong>
+<span class="stock-badge" th:classappend="${p.stock == 0} ? 'sold-out' : ''" th:text="${p.stock == 0 ? 'Hết hàng' : 'Còn ' + p.stock}"></span></td>
+<td><div class="product-actions"><form class="quantity-form" th:action="@{/pos/items}" method="post">
 <input type="hidden" name="productId" th:value="${p.id}">
-<input type="number" name="quantity" value="1" min="1" max="999999999" aria-label="Số lượng">
-<button th:disabled="${p.stock == 0}">Thêm vào giỏ</button>
-</form>
-<a th:if="${admin}" th:href="@{/products/{id}/edit(id=${p.id})}">Chỉnh sửa</a>
-</td>
-</tr>
-<tr th:if="${#lists.isEmpty(products)}">
-<td colspan="7" class="empty">Chưa có sản phẩm phù hợp.</td>
-</tr>
-</tbody>
-</table>
-</div>
+<input type="number" name="quantity" value="1" min="1" max="999999999" required th:aria-label="${'Số lượng ' + p.name}">
+<button class="icon-button" th:disabled="${p.stock == 0}" title="Thêm vào giỏ" th:aria-label="${'Thêm ' + p.name + ' vào giỏ'}"><span aria-hidden="true">＋</span></button>
+</form><a class="icon-button edit-button" th:if="${admin}" th:href="@{/products/{id}/edit(id=${p.id})}" title="Sửa sản phẩm" th:aria-label="${'Sửa ' + p.name}"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m16 3 5 5-12 12-6 1 1-6Z M14 5l5 5"/></svg></a></div></td>
+</tr><tr th:if="${#lists.isEmpty(products)}"><td colspan="3" class="empty">Chưa có sản phẩm phù hợp.</td></tr>
+</tbody></table></div>
 <div class="actions">
 <a th:if="${page > 0}" th:href="@{/products(q=${q},category=${category},page=${page - 1})}">← Trang trước</a>
 <span th:text="'Trang ' + ${page + 1}">
 </span>
 <a th:if="${hasNext}" th:href="@{/products(q=${q},category=${category},page=${page + 1})}">Trang tiếp →</a>
-<a th:href="@{/pos}">Xem giỏ bán hàng</a>
+<a href="#checkout">Đến thanh toán</a>
 </div>
-</main>
+</section><aside id="checkout" class="pos-panel" aria-label="Giỏ hàng và thanh toán">
+<div class="cart-heading"><div><p class="eyebrow">ĐƠN HÀNG HIỆN TẠI</p><h2>Giỏ hàng</h2></div><span class="cart-count" th:text="${#lists.size(rows) + ' mặt hàng'}"></span></div>
+<div class="cart-items">
+<article class="cart-item" th:each="r : ${rows}">
+<div class="cart-item-heading"><strong th:text="${r.name}"></strong>
+<form th:action="@{/pos/items/{id}/remove(id=${r.id})}" method="post"><button class="icon-button remove-button" title="Xóa khỏi giỏ" th:aria-label="${'Xóa ' + r.name + ' khỏi giỏ'}"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 6h18 M9 6V3h6v3 M5 6l1 15h12l1-15 M10 10v7 M14 10v7"/></svg></button></form></div>
+<p class="item-meta"><span th:text="${#numbers.formatDecimal(r.price,1,'COMMA',2,'POINT') + ' đ'}"></span><span th:text="${'Tồn: ' + r.stock}"></span></p>
+<div class="cart-item-bottom"><form class="quantity-form" th:action="@{/pos/items/{id}(id=${r.id})}" method="post">
+<input type="number" name="quantity" th:value="${r.quantity}" min="1" max="999999999" th:aria-label="${'Số lượng ' + r.name}" required>
+<button class="icon-button secondary" title="Lưu số lượng" th:aria-label="${'Lưu số lượng ' + r.name}"><span aria-hidden="true">✓</span></button></form>
+<strong class="money" th:text="${#numbers.formatDecimal(r.amount,1,'COMMA',2,'POINT') + ' đ'}"></strong></div>
+</article>
+<div class="empty-cart" th:if="${#lists.isEmpty(rows)}"><span aria-hidden="true">＋</span><h3>Chưa có sản phẩm</h3><p>Bấm dấu + bên cạnh sản phẩm<br>để thêm vào giỏ hàng.</p></div></div>
+<section class="card checkout">
+<div class="cart-total"><span>Tạm tính</span><strong th:text="${#numbers.formatDecimal(total,1,'COMMA',2,'POINT')}">
+</strong><span class="currency">VND</span></div>
+<p>Giá và tồn kho được kiểm tra lại khi lập hóa đơn. Khách thành viên được 1 điểm mỗi 10.000đ, làm tròn xuống theo hóa đơn.</p>
+<form th:action="@{/pos/checkout}" th:object="${form}" method="post">
+<div class="alert error" th:if="${#fields.hasAnyErrors()}">
+<p th:each="e : ${#fields.allErrors()}" th:text="${e}">
+</p>
+</div>
+<label>Khách hàng<select th:field="*{customerId}">
+<option value="">Khách vãng lai</option>
+<option th:each="c : ${customers}" th:value="${c.id}" th:text="${c.name + ' · ' + (c.phone ?: '')}">
+</option>
+</select>
+</label>
+<label>Hình thức thanh toán<select th:field="*{payment}">
+<option value="TIEN_MAT">Tiền mặt</option>
+<option value="CHUYEN_KHOAN">Chuyển khoản (ghi nhận)</option>
+</select>
+</label>
+<button class="checkout-button" th:disabled="${#lists.isEmpty(rows)}">Lập hóa đơn <span aria-hidden="true">→</span></button>
+</form>
+</section>
+<details class="card quick-customer" th:open="${#fields.hasErrors('customerForm.*')}"><summary>+ Thêm nhanh khách hàng</summary>
+<form th:action="@{/pos/customers}" th:object="${customerForm}" method="post">
+<div class="alert error" th:if="${#fields.hasAnyErrors()}"><p th:each="e : ${#fields.allErrors()}" th:text="${e}"></p></div>
+<label>Họ tên<input th:field="*{name}" maxlength="150" required></label>
+<label>Số điện thoại<input th:field="*{phone}" maxlength="20" required></label>
+<button>Thêm và chọn khách hàng</button>
+</form></details></aside></div></main>
 </body>
 </html>
 

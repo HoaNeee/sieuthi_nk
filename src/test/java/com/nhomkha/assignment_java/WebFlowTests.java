@@ -23,6 +23,8 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest(properties = "DB_PASSWORD=test-only-not-a-real-password")
 @AutoConfigureMockMvc
 class WebFlowTests {
+  @org.springframework.test.context.bean.override.mockito.MockitoBean(name = "checkOracle")
+  org.springframework.boot.CommandLineRunner startupCheck;
   @Autowired MockMvc mvc;
   @Autowired org.springframework.security.crypto.password.PasswordEncoder encoder;
   @MockitoBean EmployeeRepository employees;
@@ -30,7 +32,7 @@ class WebFlowTests {
   @MockitoBean TradingService trading;
   @MockitoBean ReportService reports;
   Employee admin = new Employee(1, "Admin", "Quản lý", "admin", "hash", "ADMIN", true);
-  Employee staff = new Employee(2, "Staff", "Thu ngân", "staff", "hash", "STAFF", true);
+  Employee staff = new Employee(2, "Staff", "Thu ngân", "staff", "hash", "THU_NGAN", true);
   Product product =
       new Product(
           1, "SP001", "Gạo", new BigDecimal("15000.00"), 10, null, 1, 1, "Thực phẩm", "NCC");
@@ -147,7 +149,7 @@ class WebFlowTests {
   void realLoginAcceptsHashAndRejectsLockedAccount() throws Exception {
     String hash = encoder.encode("testing-only-123");
     when(employees.byUsername("staff"))
-        .thenReturn(Optional.of(new Employee(2, "Staff", "", "staff", hash, "STAFF", true)));
+        .thenReturn(Optional.of(new Employee(2, "Staff", "", "staff", hash, "THU_NGAN", true)));
     var result =
         mvc.perform(
                 post("/login")
@@ -160,7 +162,7 @@ class WebFlowTests {
         (org.springframework.mock.web.MockHttpSession) result.getRequest().getSession(false);
     mvc.perform(get("/products").session(session)).andExpect(status().isOk());
     when(employees.byUsername("staff"))
-        .thenReturn(Optional.of(new Employee(2, "Staff", "", "staff", hash, "STAFF", false)));
+        .thenReturn(Optional.of(new Employee(2, "Staff", "", "staff", hash, "THU_NGAN", false)));
     mvc.perform(
             post("/login")
                 .with(csrf())
@@ -172,7 +174,7 @@ class WebFlowTests {
   @Test
   void lockedOrChangedRoleSessionIsInvalidated() throws Exception {
     when(employees.byUsername("staff"))
-        .thenReturn(Optional.of(new Employee(2, "Staff", "", "staff", "hash", "STAFF", false)));
+        .thenReturn(Optional.of(new Employee(2, "Staff", "", "staff", "hash", "THU_NGAN", false)));
     mvc.perform(get("/products").with(user(new EmployeePrincipal(staff))))
         .andExpect(redirectedUrl("/login?expired"));
   }
@@ -205,7 +207,7 @@ class WebFlowTests {
                 .with(csrf())
                 .param("productId", "1")
                 .param("quantity", "2"))
-        .andExpect(redirectedUrl("/pos"));
+        .andExpect(redirectedUrl("/products#checkout"));
     mvc.perform(get("/pos").session(session).with(user(principal))).andExpect(status().isOk());
     when(trading.checkout(anyMap(), any(), any()))
         .thenThrow(
@@ -227,6 +229,24 @@ class WebFlowTests {
                 .param("payment", "TIEN_MAT"))
         .andExpect(redirectedUrl("/invoices/42"));
     Assertions.assertTrue(((Cart) session.getAttribute("cart")).snapshot().isEmpty());
+  }
+
+  @Test
+  void quickCustomerIsSelectedAndInvalidInputKeepsCart() throws Exception {
+    var principal = new EmployeePrincipal(staff);
+    var session = new org.springframework.mock.web.MockHttpSession();
+    var cart = new Cart(2); cart.add(1, 2); session.setAttribute("cart", cart);
+    when(catalog.createCustomer(any())).thenReturn(55L);
+    mvc.perform(post("/pos/customers").session(session).with(user(principal)).with(csrf())
+        .param("name", "Khách mới").param("phone", "0901234567"))
+        .andExpect(redirectedUrl("/products#checkout"))
+        .andExpect(flash().attribute("form", org.hamcrest.Matchers.hasProperty("customerId", org.hamcrest.Matchers.is(55L))));
+    mvc.perform(post("/pos/customers").session(session).with(user(principal)).with(csrf())
+        .param("name", "").param("phone", ""))
+        .andExpect(status().isOk()).andExpect(view().name("products/list"))
+        .andExpect(model().attributeHasFieldErrors("customerForm", "name", "phone"));
+    verify(catalog, times(1)).createCustomer(any());
+    Assertions.assertEquals(2, cart.snapshot().get(1L));
   }
 
   @Test

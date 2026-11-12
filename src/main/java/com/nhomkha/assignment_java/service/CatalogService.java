@@ -75,6 +75,8 @@ public class CatalogService {
     directory.saveSupplier(id, f);
   }
 
+  public long createCustomer(CustomerForm f) throws SQLException { return directory.createCustomer(f); }
+
   public void saveCustomer(Long id, CustomerForm f) throws SQLException {
     directory.saveCustomer(id, f);
   }
